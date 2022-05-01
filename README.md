@@ -9,5 +9,6 @@ Install the `environment.yml` to work with our code.
   ```python
   import sys
   sys.path.append(r'C:\Program Files\ASAP 1.9\bin') # Fill in your own path here
-  ```<br>
+  ```
+
   Thus far, we only got this to work with python versions < 3.7.x
