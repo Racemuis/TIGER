@@ -1,7 +1,0 @@
-# TIGER
-The project repository for the TIGER challenge by group 9 of the course "NWI-IMC037 Intelligent Systems in Medical Imaging".
-
-## Usage
-Install the `environment.yml` to work with our code.
-
-* The environment needs to be linked with the `ASAP` reader from the _Radboud University Medical Center Computational Pathology Group_, which can be found in [their github repository]https://github.com/computationalpathologygroup/ASAP/releases(https://www.google.com)
