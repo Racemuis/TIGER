@@ -8,7 +8,7 @@ from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.append(r'C:\Program Files\ASAP 1.9\bin')
+sys.path.append(r'C:\Program Files\ASAP 2.0\bin')
 import multiresolutionimageinterface as mir
 
 def tif_to_numpy(path: Path, level: int, width: int = None, height: int = None) -> np.array:
@@ -62,11 +62,13 @@ def png_to_numpy(path: Path) -> np.array:
     img_frame = Image.open(path)
     return np.array(img_frame)
 
-def process_folder(path: Path, level: int) -> np.array:
+def process_folder(path: Path, targets: np.array = None, level: int = 1) -> np.array:
     """Opens all images in a folder and stores them in a np.array
 
     Args:
         path (Path): path to image folder
+        targets (np.array): An array of the files that should be read from folder; if None, all files are read
+            Default: None
         level (int): the zoom level of the tif image (lower = heavier)
     
     Raises:
@@ -74,11 +76,15 @@ def process_folder(path: Path, level: int) -> np.array:
     
     Returns:
         np.array: nested array of opened multiresolution images
+
+    TODO:   Add possibility to read XML files for the labels
     """
     images = []
     valid_images = [".png",".tif"]
 
-    for img in tqdm(os.listdir(path)):
+    files = targets if targets else os.listdir(path)
+
+    for img in tqdm(files):
         ext = os.path.splitext(img)[1]
         if ext.lower() not in valid_images:
             print(f"The file {img} has not got a valid extension.\nValid extensions are: .png, .tif", file=sys.stderr)
