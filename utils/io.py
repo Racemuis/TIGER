@@ -79,21 +79,30 @@ def process_folder(path: Path, targets: np.array = None, level: int = 1) -> np.a
 
     TODO:   Add possibility to read XML files for the labels
     """
-    images = []
+    # The valid image types
     valid_images = [".png",".tif"]
 
+    # Selecting which files to read
     files = targets if targets else os.listdir(path)
 
-    for img in tqdm(files):
+    # Making a numpy array of the right size
+    x = len(os.listdir(path))
+    reader = mir.MultiResolutionImageReader()
+    image = reader.open(os.path.join(path, x[0]))
+    y, z = image.size()
+    
+    images_dir = np.zeros((x, y, z))
+
+    for img, i in enumerate(files):
         ext = os.path.splitext(img)[1]
         if ext.lower() not in valid_images:
             print(f"The file {img} has not got a valid extension.\nValid extensions are: .png, .tif", file=sys.stderr)
             continue
 
         elif ext == ".png":
-            images.append(png_to_numpy(os.path.join(path, img)))
+            images_dir[i] = png_to_numpy(os.path.join(path, img))
 
         elif ext == ".tif":
-            images.append(tif_to_numpy(os.path.join(path, img), level = level))
+            images_dir[i] = (tif_to_numpy(os.path.join(path, img), level = level))
 
-    return np.array(images, dtype=object)
+    return images_dir
