@@ -75,7 +75,7 @@ def process_folder(path: Path, targets: np.array = None, level: int = 1) -> np.a
          FileNotFoundError: raises when opened folder is not found
     
     Returns:
-        np.array: nested array of opened multiresolution images
+        np.array: all the images in the directory
 
     TODO:   Add possibility to read XML files for the labels
     """
