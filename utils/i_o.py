@@ -44,7 +44,7 @@ def tif_to_numpy(path: Path, level: int, width: int = None, height: int = None) 
 
     # Convert a patch of the image to an numpy array
     image_array = image.getUCharPatch(startX=0, startY=0, width=width, height=height, level=level)
-    return image_array
+    return image_array.astype(int)
 
 
 def png_to_numpy(path: Path) -> np.array:
@@ -59,10 +59,10 @@ def png_to_numpy(path: Path) -> np.array:
     Returns:
         np.array: opened multiresolution image
     """
-    img_frame = Image.open(path)
-    return np.array(img_frame)
+    img_frame = Image.open(path).convert('RGB')
+    return np.array(img_frame, dtype=int)
 
-def process_folder(path: Path, targets: np.array = None, level: int = 1) -> np.array:
+def process_folder(path: Path, targets: np.array = None, level: int = 5) -> np.array:
     """Opens all images in a folder and stores them in a np.array
 
     Args:
@@ -83,26 +83,32 @@ def process_folder(path: Path, targets: np.array = None, level: int = 1) -> np.a
     valid_images = [".png",".tif"]
 
     # Selecting which files to read
-    files = targets if targets else os.listdir(path)
-
-    # Making a numpy array of the right size
-    x = len(os.listdir(path))
-    reader = mir.MultiResolutionImageReader()
-    image = reader.open(os.path.join(path, x[0]))
-    y, z = image.size()
+    files = targets if targets is not None else os.listdir(path)
+    x = os.listdir(path)
+    kind = os.path.splitext(files[0])[1]
     
-    images_dir = np.zeros((x, y, z))
+    if kind == ".png": 
+        images_dir = np.array([])
 
-    for img, i in enumerate(files):
+    elif kind == ".tif":
+        # Reading of tif files     
+        reader = mir.MultiResolutionImageReader()
+        image = reader.open(os.path.join(path, x[0]))
+        width, height = (10000, 10000) #image.getDimensions()
+        image_array = image.getUCharPatch(startX=0, startY=0, width=2000, height=1250, level=level)
+        y, z, c = image_array.shape
+        images_dir = np.zeros((len(x), y, z, c))
+
+    for i, img in enumerate(files):
         ext = os.path.splitext(img)[1]
         if ext.lower() not in valid_images:
             print(f"The file {img} has not got a valid extension.\nValid extensions are: .png, .tif", file=sys.stderr)
             continue
 
         elif ext == ".png":
-            images_dir[i] = png_to_numpy(os.path.join(path, img))
+            np.append(images_dir, png_to_numpy(os.path.join(path, img)))
 
         elif ext == ".tif":
-            images_dir[i] = (tif_to_numpy(os.path.join(path, img), level = level))
+            images_dir[i, :, :, :] = tif_to_numpy(os.path.join(path, img), level = level, width = 2000, height = 1250)
 
-    return images_dir
+    return images_dir.astype(int)

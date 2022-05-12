@@ -8,7 +8,7 @@ class DataSet:
         self.lbls = lbls
     
     def show_image(self, i):
-        if self.lbls != None:
+        if self.lbls is not None:
             f, axes = plt.subplots(1, 3)
             for ax, im, t in zip(axes, 
                                  (self.imgs[i], self.msks[i], self.lbls[i]), 

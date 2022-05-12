@@ -22,8 +22,8 @@ class BatchCreator:
         # the images are padded with half the patch-size around the border
         # this way, we don't risk extracting patches from the border, that extend beyond the original image
         self.imgs = pad(dataset.imgs, border_pad_size)
-        self.lbls = pad(np.expand_dims(dataset.lbls, 3), border_pad_size)
-        self.msks = pad(np.expand_dims(dataset.msks, 3), border_pad_size)
+        self.lbls = pad(dataset.lbls, border_pad_size) # Removed np.expand_dims here
+        self.msks = pad(dataset.msks, border_pad_size) # Removed np.expand_dims here
         self.patch_location_sampler = BalancedSampler(self.lbls, self.msks)
        
     
