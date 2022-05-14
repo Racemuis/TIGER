@@ -26,7 +26,6 @@ class PatchExtractor:
     
         img_patch = image[y-py//2:y+(py-py//2), x-px//2:x+(px-px//2), :]
         label_patch = mask[y-py//2:y+(py-py//2), x-px//2:x+(px-px//2)]
-        
         img_patch = (img_patch - np.min(img_patch))/max(1,(np.max(img_patch)-np.min(img_patch)))
         label_patch = (label_patch - np.min(label_patch))/max(1,(np.max(label_patch)-np.min(label_patch)))
         

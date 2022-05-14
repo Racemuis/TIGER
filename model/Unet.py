@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, UpSamp
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 def unet_block(inputs, n_filters, batchnorm=False, dropout=False):

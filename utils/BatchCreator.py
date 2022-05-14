@@ -11,8 +11,10 @@ def pad(images, patch_size):
         returns a padded version of the images, with a border of half the patch_size around each image
         """
         half_py, half_px = [p//2 for p in patch_size]
-        paddings = ((0, 0), (half_py, half_py), (half_px, half_px), (0, 0))
-        return np.pad(np.array(images), pad_width=paddings, mode='constant') 
+        # paddings = ((0,0), (half_py, half_py), (half_px, half_px), (0, 0))
+        paddings = ((half_py, half_py), (half_px, half_px), (0, 0))
+        padded_images = [np.pad(img, pad_width = paddings, mode = 'constant') for img in images]
+        return padded_images#np.pad(np.array(images), pad_width=paddings, mode='constant') 
 
 class BatchCreator:
     
@@ -61,8 +63,8 @@ class UNetBatchCreator(BatchCreator):
         '''
         returns a batch of image patches (x) with corresponding label patches (y) in one-hot structure
         '''
-        x_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 3))
-        y_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 2))  # one-hot encoding
+        x_data = np.zeros((batch_size*len(self.imgs), *self.patch_extractor.patch_size, 3))
+        y_data = np.zeros((batch_size*len(self.imgs), *self.patch_extractor.patch_size, 2))  # one-hot encoding
 
         locations = self.patch_location_sampler.generate_sample_locations(batch_size)
         

@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-
 class DataSet:
     
     def __init__(self, imgs, msks, lbls=None):
