@@ -1,7 +1,6 @@
 # tensorflow as base library for neural networks
 import tensorflow as tf
 import numpy as np
-
 import matplotlib.patches as patches
 
 # keras as a layer on top of tensorflow
@@ -14,7 +13,49 @@ from preprocessing import parse_annotation, BatchGenerator, normalize
 
 from typing import Union
 from pathlib import Path
-import cv2
+import cv2  
+
+def xml2bbox(xml_file):
+    '''Convert xml file to bounding box
+    
+    Parameters
+    ----------
+    xml_file: str
+        Path to xml file
+        
+    Returns
+    -------
+    bbox: BoundingBox object
+        A BoundingBox object with parameters derived from the xml file
+    '''
+    # Parse structure of XML file
+    tree = ET.parse(xml_file)
+
+    for elem in tree.iter():
+        if 'width' in elem.tag:
+            width = int(elem.text) # image width
+        if 'height' in elem.tag:
+            height = int(elem.text) # image height
+
+        for attr in list(elem):
+
+            if 'bndbox' in attr.tag:
+                for dim in list(attr):
+                    if 'xmin' in dim.tag:
+                        xmin = int(dim.text) # xmin bounding box
+                    if 'ymin' in dim.tag:
+                        ymin = int(dim.text) # ymin bounding box
+                    if 'xmax' in dim.tag:
+                        xmax = int(dim.text) # xmax bounding box
+                    if 'ymax' in dim.tag:
+                        ymax = int(dim.text) # ymax bounding box
+
+    x = (xmin+(xmax - xmin)/2)/width
+    y = (ymin+(ymax - ymin)/2)/height
+    w = (xmax - xmin)/width
+    h = (ymax - ymin)/height
+        
+    return BoundingBox(x,y,w,h)
 
 class BoundingBox:
     def __init__(self, x, y, w, h, c = None, classes = None):
@@ -168,8 +209,6 @@ def decode_netout(netout, obj_threshold, nms_threshold, anchors, nb_class):
     boxes = [box for box in boxes if box.get_score() > obj_threshold]
     
     return boxes
-
-
 
 def predict_bounding_box(img: Union[Path, str], model, obj_threshold, nms_threshold, anchors, nb_class, TRUE_BOX_BUFFER):
     """

@@ -61,6 +61,7 @@ def png_to_numpy(path: Path) -> np.array:
     """
     img_frame = Image.open(path).convert('RGB')
     return np.array(img_frame, dtype=int)
+
 """
 def process_folder(path: Path, targets: np.array = None, level: int = 5) -> np.array:
     Opens all images in a folder and stores them in a np.array
@@ -134,7 +135,7 @@ def process_folder(path: Path, targets: np.array = None, level: int = 5) -> np.a
     TODO:   Add possibility to read XML files for the labels
     """
     # The valid image types
-    valid_images = [".png",".tif"]
+    valid_images = [".png",".tif", ".xml"]
 
     img_dir = []
 
