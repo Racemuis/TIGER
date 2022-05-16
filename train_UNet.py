@@ -21,9 +21,9 @@ import tensorflow.keras.callbacks
 path = os.getcwd()
 parent = os.path.dirname(path)
 
-X_DIR = os.path.join(parent,'project\data_sample\wsibulk\images')
-y_DIR = os.path.join(parent,'project\data_sample\wsibulk\annotations-tumor-bulk\masks')
-MSKS_DIR =os.path.join(parent, 'project\data_sample\wsibulk\tissue-masks')
+X_DIR = os.path.join(parent, r'data_sample\wsibulk\images')
+y_DIR = os.path.join(parent, r'data_sample\wsibulk\annotations-tumor-bulk\masks')
+MSKS_DIR =os.path.join(parent, r'data_sample\wsibulk\tissue-masks')
 
 # Create a train-test split
 X_train_files, X_test_files, y_train_files, y_test_files, msks_train_files, msks_test_files = clean_train_test_split(X_directory=X_DIR, y_directory= y_DIR, test_size=0.4)
