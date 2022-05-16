@@ -7,8 +7,6 @@ logging.basicConfig(level = logging.INFO)
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from i_o import process_folder
-
 def get_ID(filename: str)-> str:
     """extracts the patient ID from the filename
 

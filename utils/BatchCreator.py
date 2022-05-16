@@ -1,7 +1,6 @@
 
 import numpy as np
-from BalancedSampler import BalancedSampler
-from PatchExtractor import PatchExtractor
+from utils.BalancedSampler import BalancedSampler
 
 from tensorflow.keras.utils import to_categorical
 
