@@ -5,7 +5,7 @@ import matplotlib.patches as patches
 
 # keras as a layer on top of tensorflow
 from keras.models import Sequential, Model
-from keras.layers import Reshape, Activation, Conv2D, Input, MaxPooling2D, BatchNormalization, Flatten, Dense, Lambda, LeakyReLU
+from keras.layers import Reshape, Activation, Conv2D, Input, MaxPooling2D, BatchNormalization, Flatten, Dense, Lambda, LeakyReLU, concatenate
 
 import utils as utils
 import loss_utils as loss_utils
@@ -14,6 +14,42 @@ from preprocessing import parse_annotation, BatchGenerator, normalize
 from typing import Union
 from pathlib import Path
 import cv2  
+
+import requests
+import zipfile
+from typing import Union
+from tqdm.notebook import tqdm
+
+
+def download_weights(url: str,
+                           download_zipfile_name: Union[Path,str],
+                           extract_dir_name: Union[Path,str],
+                           workdir: Union[Path,str] = ".") -> None:
+    
+    workdir = Path(workdir)
+    download_zipfile_name = workdir / download_zipfile_name
+    extract_dir_name = workdir / extract_dir_name
+    
+    if not download_zipfile_name.is_file():
+        with open(download_zipfile_name, "wb") as f:
+                response = requests.get(url, stream=True)
+                total_length = response.headers.get('content-length')
+                if total_length is None: # no content length header
+                    f.write(response.content)
+                else:
+                    dl = 0
+                    chunk_size = 4096
+                    total_length = int(total_length)
+                    with tqdm(response.iter_content(chunk_size=chunk_size), total=total_length, desc='Downloading data') as pbar:
+                        for data in pbar:
+                            dlen = len(data) 
+                            f.write(data)
+                            dl += dlen
+                            pbar.update(dlen)
+    if not extract_dir_name.is_dir():   # caters for case when zip file downloaded but e.g. wasn't extracted
+        with zipfile.ZipFile(download_zipfile_name,"r") as zip_ref:
+            zip_ref.extractall(workdir)    
+
 
 def xml2bbox(xml_file):
     '''Convert xml file to bounding box
@@ -104,6 +140,9 @@ def get_matplotlib_boxes(boxes, img_shape):
         plt_boxes.append(patches.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin, fill=False, color='#00FF00', linewidth='2'))
     return plt_boxes
 
+def space_to_depth_x2(x):
+    return tf.nn.space_to_depth(x, block_size=2)
+
 def YOLO_network(input_img, true_bxs, CLASS, BOX, GRID_H, GRID_W):
 
     # Layer 1
@@ -145,9 +184,94 @@ def YOLO_network(input_img, true_bxs, CLASS, BOX, GRID_H, GRID_W):
     x = LeakyReLU(alpha=0.1)(x)
 
     # Layer 8
+    x = Conv2D(256, (3,3), strides=(1,1), padding='same', name='conv_8', use_bias=False, input_shape=(512,512,3))(x)
+    x = BatchNormalization(name='norm_8')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+    x = MaxPooling2D(pool_size=(2, 2))(x)
+
+    # Layer 9
+    x = Conv2D(512, (3,3), strides=(1,1), padding='same', name='conv_9', use_bias=False)(x)
+    x = BatchNormalization(name='norm_9')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 10
+    x = Conv2D(256, (1,1), strides=(1,1), padding='same', name='conv_10', use_bias=False)(x)
+    x = BatchNormalization(name='norm_10')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 11
+    x = Conv2D(512, (3,3), strides=(1,1), padding='same', name='conv_11', use_bias=False)(x)
+    x = BatchNormalization(name='norm_11')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 12
+    x = Conv2D(256, (1,1), strides=(1,1), padding='same', name='conv_12', use_bias=False)(x)
+    x = BatchNormalization(name='norm_12')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 13
+    x = Conv2D(512, (3,3), strides=(1,1), padding='same', name='conv_13', use_bias=False)(x)
+    x = BatchNormalization(name='norm_13')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    skip_connection = x
+
+    x = MaxPooling2D(pool_size=(2, 2))(x)
+
+    # Layer 14
+    x = Conv2D(1024, (3,3), strides=(1,1), padding='same', name='conv_14', use_bias=False)(x)
+    x = BatchNormalization(name='norm_14')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 15
+    x = Conv2D(512, (1,1), strides=(1,1), padding='same', name='conv_15', use_bias=False)(x)
+    x = BatchNormalization(name='norm_15')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 16
+    x = Conv2D(1024, (3,3), strides=(1,1), padding='same', name='conv_16', use_bias=False)(x)
+    x = BatchNormalization(name='norm_16')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 17
+    x = Conv2D(512, (1,1), strides=(1,1), padding='same', name='conv_17', use_bias=False)(x)
+    x = BatchNormalization(name='norm_17')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 18
+    x = Conv2D(1024, (3,3), strides=(1,1), padding='same', name='conv_18', use_bias=False)(x)
+    x = BatchNormalization(name='norm_18')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 19
+    x = Conv2D(1024, (3,3), strides=(1,1), padding='same', name='conv_19', use_bias=False)(x)
+    x = BatchNormalization(name='norm_19')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 20
+    x = Conv2D(1024, (3,3), strides=(1,1), padding='same', name='conv_20', use_bias=False)(x)
+    x = BatchNormalization(name='norm_20')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 21
+    skip_connection = Conv2D(64, (1,1), strides=(1,1), padding='same', name='conv_21', use_bias=False)(skip_connection)
+    skip_connection = BatchNormalization(name='norm_21')(skip_connection)
+    skip_connection = LeakyReLU(alpha=0.1)(skip_connection)
+    skip_connection = Lambda(space_to_depth_x2)(skip_connection)
+
+    x = concatenate([skip_connection, x])
+
+    # Layer 22
+    x = Conv2D(1024, (3,3), strides=(1,1), padding='same', name='conv_22', use_bias=False)(x)
+    x = BatchNormalization(name='norm_22')(x)
+    x = LeakyReLU(alpha=0.1)(x)
+
+    # Layer 23
     x = Conv2D(BOX * (4 + 1 + CLASS), (1,1), strides=(1,1), padding='same', name='conv_23')(x)
     output = Reshape((GRID_H, GRID_W, BOX, 4 + 1 + CLASS))(x)
 
+    # small hack to allow true_boxes to be registered when Keras build the model 
+    # for more information: https://github.com/fchollet/keras/issues/2790
     output = Lambda(lambda args: args[0])([output, true_bxs])
 
     model = Model([input_img, true_bxs], output)
@@ -228,3 +352,4 @@ def predict_bounding_box(img: Union[Path, str], model, obj_threshold, nms_thresh
     netout = model.predict([input_image, dummy_array])
 
     return decode_netout(netout[0], obj_threshold, nms_threshold, anchors, nb_class)  
+   
