@@ -2,52 +2,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 import copy
 import tensorflow as tf
+import sys
+sys.path.append(r'C:\Program Files\ASAP 2.0\bin') # Fill in your own path here
 
 import os
-from pathlib import Path
+from keras import utils
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from tensorflow.keras.utils import Sequence
 import multiresolutionimageinterface as mir
 
-
-from model.YOLO_utils import *
-from utils.train_test_split import clean_train_test_split
-from utils.i_o import process_folder
-from utils.DataSet import DataSet
 from wholeslidedata.annotation.wholeslideannotation import WholeSlideAnnotation
-from wholeslidedata.image.wholeslideimage import WholeSlideImage
-from wholeslidedata.annotation.structures import Point
 from imgaug import augmenters as iaa
-
-import tensorflow as tf
 import numpy as np
 from dataclasses import dataclass
 from matplotlib import pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.patches as pltpatches
 
-
-# tensorflow as base library for neural networks
-import tensorflow as tf
-
 # keras as a layer on top of tensorflow
-from keras.models import Sequential, Model
-from keras.layers import Reshape, Activation, Conv2D, Input, MaxPooling2D, BatchNormalization, Flatten, Dense, Lambda
+from keras.models import Model
+from keras.layers import Reshape, Conv2D, Input, MaxPooling2D, BatchNormalization, Lambda
 from keras.layers import LeakyReLU
-from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
-from tensorflow.keras.optimizers import SGD, Adam, RMSprop
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
 from keras.layers import concatenate
-import keras.backend as K
 
-# h5py is needed to store and load Keras models
-import h5py
- 
 # matplotlib is needed to plot bounding boxes
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-
-from tqdm.notebook import tqdm
 import cv2
-from pathlib import Path
 
 
 @dataclass
@@ -371,6 +352,20 @@ class BoundBox:
 
         return self.score
 
+def interval_overlap(interval_a, interval_b):
+    x1, x2 = interval_a
+    x3, x4 = interval_b
+
+    if x3 < x1:
+        if x4 < x1:
+            return 0
+        else:
+            return min(x2,x4) - x1
+    else:
+        if x2 < x3:
+            return 0
+        else:
+            return min(x2,x4) - x3
 
 def bbox_iou(box1, box2):
     x1_min  = box1.x - box1.w/2
@@ -937,7 +932,7 @@ OBJECT_SCALE     = 5.0 # lambda obj
 COORD_SCALE      = 1.0
 CLASS_SCALE      = 1.0
 
-BATCH_SIZE       = 16
+BATCH_SIZE       = 8
 WARM_UP_BATCHES  = 100
 TRUE_BOX_BUFFER  = 50
 

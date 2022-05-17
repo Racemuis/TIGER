@@ -4,12 +4,8 @@ import numpy as np
 import matplotlib.patches as patches
 
 # keras as a layer on top of tensorflow
-from keras.models import Sequential, Model
-from keras.layers import Reshape, Activation, Conv2D, Input, MaxPooling2D, BatchNormalization, Flatten, Dense, Lambda, LeakyReLU, concatenate
-
-import utils as utils
-import loss_utils as loss_utils
-from preprocessing import parse_annotation, BatchGenerator, normalize
+from keras.models import Model
+from keras.layers import Reshape, Conv2D, MaxPooling2D, BatchNormalization, Lambda, LeakyReLU, concatenate
 
 from typing import Union
 from pathlib import Path
