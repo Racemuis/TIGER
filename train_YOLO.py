@@ -6,7 +6,7 @@ import sys
 sys.path.append(r'C:\Program Files\ASAP 2.0\bin') # Fill in your own path here
 
 import os
-from keras import utils
+#from keras import utils
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from tensorflow.keras.utils import Sequence
 import multiresolutionimageinterface as mir
@@ -30,6 +30,11 @@ from keras.layers import concatenate
 import matplotlib.pyplot as plt
 import cv2
 
+
+def normalize(image):
+    image = image / 255.
+
+    return image
 
 @dataclass
 class Scales:
@@ -932,7 +937,7 @@ OBJECT_SCALE     = 5.0 # lambda obj
 COORD_SCALE      = 1.0
 CLASS_SCALE      = 1.0
 
-BATCH_SIZE       = 8
+BATCH_SIZE       = 2
 WARM_UP_BATCHES  = 100
 TRUE_BOX_BUFFER  = 50
 
@@ -959,7 +964,7 @@ early_stop = EarlyStopping(monitor='val_loss',
                            mode='min', 
                            verbose=1)
 
-checkpoint = ModelCheckpoint('weights_left_right_lung.h5',
+checkpoint = ModelCheckpoint('model_YOLO.h5',
                              monitor='val_loss', 
                              verbose=1, 
                              save_best_only=True, 
@@ -976,8 +981,8 @@ training_data_percentage = 0.8 # set a number between 0 and 1
 train_valid_split = int(training_data_percentage * len(all_imgs))
 
 # initialize training and validation batch generators
-train_batch = BatchGenerator(all_imgs[:train_valid_split], max_width, max_height, generator_config, norm=utils.normalize)
-valid_batch = BatchGenerator(all_imgs[train_valid_split:], max_width, max_height, generator_config, norm=utils.normalize)
+train_batch = BatchGenerator(all_imgs[:train_valid_split], max_width, max_height, generator_config, norm=normalize)
+valid_batch = BatchGenerator(all_imgs[train_valid_split:], max_width, max_height, generator_config, norm=normalize)
 
 # define number of epochs
 n_epoch = 2
@@ -991,7 +996,7 @@ dummy_array = np.zeros((1,1,1,1,TRUE_BOX_BUFFER,4))
 model = YOLO_network(input_image, true_boxes, CLASS)
 
 # compile YOLO model
-loss = Loss(16, 64, 64, ANCHORS, n_boxes = 5)
+loss = Loss(2, 64, 64, ANCHORS, n_boxes = 5)
 model.compile(loss=loss, optimizer=optimizer)
 
 # do training
