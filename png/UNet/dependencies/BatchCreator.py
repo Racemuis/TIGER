@@ -1,6 +1,8 @@
 import numpy as np
 
 from dependencies.BalancedSampler import BalancedSampler
+from tensorflow.keras.utils import to_categorical
+
 
 def pad(images, patch_size):
     '''
@@ -44,3 +46,27 @@ class BatchCreator:
         '''returns a generator that will yield batches infinitely'''
         while True:
             yield self.create_batch(batch_size)
+
+class UNetBatchCreator(BatchCreator):
+
+    def __init__(self, patch_extractor, dataset, border_pad_size):
+        super(UNetBatchCreator, self).__init__(patch_extractor, dataset,
+                                                    border_pad_size)
+
+        self.patch_location_sampler = BalancedSampler(self.lbls, self.msks)
+    
+    def create_batch(self, batch_size):
+        '''
+        returns a batch of image patches (x) with corresponding label patches (y) in one-hot structure
+        '''
+        x_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 3))
+        y_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 2))  # one-hot encoding
+
+        locations = self.patch_location_sampler.generate_sample_locations(batch_size)
+        
+        for i, l in enumerate(locations):
+            index, y, x = l
+            x_data[i], y_out = patch_extractor.get_patch(self.imgs[index], self.lbls[index], (y,x))
+            y_data[i] = to_categorical(y_out)
+                    
+        return x_data, y_data

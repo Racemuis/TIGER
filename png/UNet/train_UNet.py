@@ -36,26 +36,16 @@ validation_data = DataSet(train_rois[:n_validation_imgs], train_msks[:n_validati
 # the rest as training
 train_data = DataSet(train_rois[n_validation_imgs:], train_msks[n_validation_imgs:], train_lbls[n_validation_imgs:])
 
-train_data.show_image(0)
-
 patch_size = (256, 256) # Set the size of the patches as a tuple (height, width) 
+batch_size = 128        # pick a reasonable batch-size (e.g. power-of-two in the range 32, 64, 128, 256)
+steps_per_epoch = 4            # how many steps per epoch?
+epochs = 64                     # how many epochs? - Running more epochs simply took too long.
+stride = 4                     # what is the downscaling factor of your network? stride = 3? originally 4
 
-img_index = 0 # choose an image to extract the patch from
-location = (1000, 1000) # define the location of the patch (y, x) - coordinate
 
 patch_extractor = PatchExtractor(patch_size, True)
 
 batch_creator = BatchCreator(patch_extractor, train_data, patch_extractor.patch_size)
 
-# create a batch
-x, y = batch_creator.create_batch(28)
-# visualize it
-f, axes = plt.subplots(4, 7)
-i = 0
-for ax_row in axes:
-    for ax in ax_row:
-        ax.imshow(x[i])
-        ax.set_title('class: {}'.format(np.argmax(y[i, 0, 0])))
-        ax.scatter(*[p/2 for p in patch_extractor.patch_size], alpha=0.5)
-        i += 1
-plt.show()
+generator = batch_creator.get_generator(batch_size)
+logger_1 = Logger(validation_data, patch_size, stride=stride)
