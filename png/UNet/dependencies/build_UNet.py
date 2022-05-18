@@ -19,7 +19,7 @@ def unet_block(inputs, n_filters, batchnorm=False, dropout=False):
     
     return cl
 
-def build_unet(initial_filters=16, n_classes=2, batchnorm=False, dropout=False, printmodel=False):
+def build_unet(initial_filters=16, n_classes=3, batchnorm=False, dropout=False, printmodel=False):
 
     # build U-Net again using unet_block function
     inputs = Input(shape=(None, None, 3)) #adjust

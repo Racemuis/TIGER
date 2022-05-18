@@ -15,18 +15,26 @@ from tensorflow.keras.optimizers import Adam
 path = os.getcwd()
 parent = os.path.dirname(os.path.dirname(path))
 
-X_DIR = os.path.join(parent, r'data_sample\wsirois\roi-level-annotations\tissue-bcss\images')
-y_DIR = os.path.join(parent, r'data_sample\wsirois\roi-level-annotations\tissue-bcss\masks')
+# X_DIR = os.path.join(parent, r'data_sample\wsirois\roi-level-annotations\tissue-bcss\images')
+# y_DIR = os.path.join(parent, r'data_sample\wsirois\roi-level-annotations\tissue-bcss\masks')
+
+X_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
+y_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
 
 rois_files = get_file_list(X_DIR, ext = '.png')
 rois_lbls = get_file_list(y_DIR, ext = '.png')
 
 train_rois_i = [load_img(f) for f in rois_files]
+
+# Saving the shapes of the input roi's
+train_size_rois = []
+for img in train_rois_i: 
+    train_size_rois.append(img.shape[:2])
+
 train_msks_i = [np.ones(roi.shape) for roi in train_rois_i]
-train_roi_list = [reshape(f) for f in train_rois_i]
-train_rois, x, y = train_roi_list[0], train_roi_list[1], train_roi_list[2]
+train_rois = [reshape(f) for f in train_rois_i]
 train_lbls = [np.squeeze(reshape(np.expand_dims(load_img(f), axis = 2))) for f in rois_lbls]
-train_msks =  [reshape(f)[:, :, 0] for f in train_msks_i][0]
+train_msks = [reshape(f)[:, :, 0] for f in train_msks_i]
 
 # Define the number of validation images
 n_validation_imgs = int(np.floor(0.2 * len(train_rois)))
@@ -57,7 +65,12 @@ unet.fit(patch_generator, steps_per_epoch=steps_per_epoch, epochs=epochs, callba
 
 logger.best_model.save("UNet")
 
+
 output = process_unet(unet, np.array(validation_data.imgs))
+
+for i, elem in enumerate(train_size_rois): 
+    x, y = elem[0], elem[1]
+    output[i] = output[i][:x][:y]
+
 print(output)
-reshape_valid = np.reshape(validation_data.imgs, (x,y))
 check_results_unet(validation_data.imgs, validation_data.lbls, reshape_valid, output=np.array(output), threshold= 0.1)
