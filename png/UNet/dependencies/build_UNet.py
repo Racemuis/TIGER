@@ -79,14 +79,14 @@ def check_results_unet(imgs, lbls, msks, output, threshold=0.5):
         final_output = raw_output > threshold
         
 #         print('Output_mask: {}\nLbl: {}'.format(final_output[3].shape, lbl.shape))
-        dice = calculate_dice(final_output[i], lbls[i])
+        dice = calculate_dice(final_output, lbl)
         dices.append(dice)
         print('image:', i, 'dice', dice)
         
         # plot the results
         f, axes = plt.subplots(1, 4)
         for ax, im, t in zip(axes, 
-                             (img, raw_output[i], final_output[i], lbl), 
+                             (img, raw_output, final_output, lbl), 
                              ('RGB image', 'Soft prediction', 'Thresholded', 'Ground truth')):
             ax.imshow(im, cmap='gray')
             ax.set_title(t)

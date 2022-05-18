@@ -49,7 +49,7 @@ class UNetLogger(tensorflow.keras.callbacks.Callback):
         if dice > self.best_dice:
             print('updating the best model')
             self.best_dice = dice
-            self.best_model = self.model.get_weights()
+            self.best_model = self.model#.get_weights()
         self.plot()
 
     def validate(self):
