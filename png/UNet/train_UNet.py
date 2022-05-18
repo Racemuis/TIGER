@@ -13,23 +13,19 @@ from tensorflow.keras.optimizers import Adam
 
 # Set paths to the data
 path = os.getcwd()
-parent = os.path.dirname(os.path.dirname(path))
+parent = path
 
-# X_DIR = os.path.join(parent, r'data_sample\wsirois\roi-level-annotations\tissue-bcss\images')
-# y_DIR = os.path.join(parent, r'data_sample\wsirois\roi-level-annotations\tissue-bcss\masks')
+X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
+y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
 
-X_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
-y_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
+# Celena directory
+# X_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
+# y_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
 
 rois_files = get_file_list(X_DIR, ext = '.png')
 rois_lbls = get_file_list(y_DIR, ext = '.png')
 
 train_rois_i = [load_img(f) for f in rois_files]
-
-# Saving the shapes of the input roi's
-train_size_rois = []
-for img in train_rois_i: 
-    train_size_rois.append(img.shape[:2])
 
 train_msks_i = [np.ones(roi.shape) for roi in train_rois_i]
 train_rois = [reshape(f) for f in train_rois_i]
@@ -41,6 +37,11 @@ n_validation_imgs = int(np.floor(0.2 * len(train_rois)))
 
 # use the first images as validation
 validation_data = DataSet(train_rois[:n_validation_imgs], train_msks[:n_validation_imgs], train_lbls[:n_validation_imgs])
+
+# Saving the shapes of the validation roi's
+validation_size_roi = []
+for img in train_msks_i[:n_validation_imgs]: 
+    validation_size_roi.append(img.shape[:2])
 
 # the rest as training
 train_data = DataSet(train_rois[n_validation_imgs:], train_msks[n_validation_imgs:], train_lbls[n_validation_imgs:])
@@ -56,21 +57,28 @@ batch_creator = UNetBatchCreator(patch_extractor, train_data, patch_size)
 patch_generator = batch_creator.get_generator(batch_size)
 logger = UNetLogger(validation_data)
 
-unet = build_unet(initial_filters=16, n_classes=2, batchnorm=True, dropout=True, printmodel=True)
+unet = build_unet(initial_filters=16, n_classes=3, batchnorm=True, dropout=True, printmodel=True)
 
 optimizer = Adam(learning_rate)
 unet.compile(optimizer, loss='categorical_crossentropy')
 
 unet.fit(patch_generator, steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=[logger])
 
+
 logger.best_model.save("UNet")
 
 
 output = process_unet(unet, np.array(validation_data.imgs))
-
-for i, elem in enumerate(train_size_rois): 
+new_out = []
+new_lbl = []
+new_img = []
+for i, elem in enumerate(validation_size_roi): 
     x, y = elem[0], elem[1]
-    output[i] = output[i][:x][:y]
+    new_out.append(output[i][:x,:y])
+    print(output[i][:x,:y])
+    new_lbl.append(validation_data.lbls[i][:x,:y])
+    new_img.append(validation_data.imgs[i][:x,:y])
 
-print(output)
-check_results_unet(validation_data.imgs, validation_data.lbls, reshape_valid, output=np.array(output), threshold= 0.1)
+print(output.shape)
+print(np.unique(output, return_counts = True))
+check_results_unet(new_img, new_lbl, validation_data.msks, new_out, threshold= 0.1)

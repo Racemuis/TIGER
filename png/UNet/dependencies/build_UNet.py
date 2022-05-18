@@ -76,10 +76,10 @@ def check_results_unet(imgs, lbls, msks, output, threshold=0.5):
 
     dices = []
     for i, (img, lbl, _, raw_output) in enumerate(zip(imgs, lbls, msks, output)):
-        final_output = raw_output > threshold
+        final_output = raw_output*(255/3)
         
 #         print('Output_mask: {}\nLbl: {}'.format(final_output[3].shape, lbl.shape))
-        dice = calculate_dice(final_output, lbl)
+        dice = calculate_dice(raw_output.flatten(), lbl.flatten())
         dices.append(dice)
         print('image:', i, 'dice', dice)
         
@@ -102,7 +102,7 @@ def process_unet(model, imgs):
     pad_imgs = np.pad(imgs, pad_width=padding, mode='constant')
     
     # run unet model
-    output = model.predict(pad_imgs, batch_size=1)[:, :, :, 1]
+    output = np.argmax(model.predict(pad_imgs, batch_size=1), axis = -1)+1
     
     # don't forget to crop it back because you pad it before.
     _, h, w, _ = imgs.shape

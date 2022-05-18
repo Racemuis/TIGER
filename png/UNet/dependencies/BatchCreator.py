@@ -60,13 +60,13 @@ class UNetBatchCreator(BatchCreator):
         returns a batch of image patches (x) with corresponding label patches (y) in one-hot structure
         '''
         x_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 3))
-        y_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 2))  # one-hot encoding
+        y_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 3))  # one-hot encoding
 
         locations = self.patch_location_sampler.generate_sample_locations(batch_size)
         
         for i, l in enumerate(locations):
             index, y, x = l
             x_data[i], y_out = self.patch_extractor.get_patch(self.imgs[index], self.lbls[index], (y,x))
-            y_data[i] = to_categorical(y_out)
+            y_data[i] = to_categorical(y_out, num_classes = 3)
                     
         return x_data, y_data
