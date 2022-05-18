@@ -911,7 +911,7 @@ parent = os.path.dirname(path)
 
 X_DIR = os.path.join(parent,r'data_sample\wsirois\wsi-level-annotations\images')
 y_DIR = os.path.join(parent,r'data_sample\wsirois\wsi-level-annotations\annotations-tissue-cells-xmls')
-MSKS_DIR =os.path.join(parent, r'data_sample\wsirois\wsi-level-annotations\annotations-tissue-cells-masks')
+# MSKS_DIR =os.path.join(parent, r'data_sample\wsirois\wsi-level-annotations\annotations-tissue-cells-masks')
 
 all_imgs, seen_labels = parse_annotation(y_DIR, X_DIR, ["lymphocytes and plasma cells"])
 max_height = 2048 # max([img['height'] for img in all_imgs])+1
