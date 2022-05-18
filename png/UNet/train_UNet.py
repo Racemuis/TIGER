@@ -4,12 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from PIL import Image
+from pathlib import Path
 
 from dependencies.DataSet import DataSet
 from dependencies.PatchExtractor import PatchExtractor
-from dependencies.BatchCreator import BatchCreator
-from dependencies.data_loading import *
-
+from dependencies.BatchCreator import UNetBatchCreator
+from dependencies.data_loading import get_file_list, load_img, reshape
+from dependencies.Logger import UNetLogger
+from dependencies.build_UNet import build_unet, check_results_unet, process_unet
+from tensorflow.keras.optimizers import Adam
 
 # Set paths to the data
 path = os.getcwd()
@@ -36,16 +39,24 @@ validation_data = DataSet(train_rois[:n_validation_imgs], train_msks[:n_validati
 # the rest as training
 train_data = DataSet(train_rois[n_validation_imgs:], train_msks[n_validation_imgs:], train_lbls[n_validation_imgs:])
 
-patch_size = (256, 256) # Set the size of the patches as a tuple (height, width) 
-batch_size = 128        # pick a reasonable batch-size (e.g. power-of-two in the range 32, 64, 128, 256)
-steps_per_epoch = 4            # how many steps per epoch?
-epochs = 64                     # how many epochs? - Running more epochs simply took too long.
-stride = 4                     # what is the downscaling factor of your network? stride = 3? originally 4
+learning_rate = 5e-4     
+patch_size = (128, 128)
+batch_size = 32
+steps_per_epoch = 2
+epochs = 3
 
+patch_extractor = PatchExtractor(patch_size, horizontal_flipping=True)
+batch_creator = UNetBatchCreator(patch_extractor, train_data, patch_size)
+patch_generator = batch_creator.get_generator(batch_size)
+logger = UNetLogger(validation_data)
 
-patch_extractor = PatchExtractor(patch_size, True)
+unet = build_unet(initial_filters=16, n_classes=2, batchnorm=True, dropout=True, printmodel=True)
 
-batch_creator = BatchCreator(patch_extractor, train_data, patch_extractor.patch_size)
+optimizer = Adam(learning_rate)
+unet.compile(optimizer, loss='categorical_crossentropy')
 
-generator = batch_creator.get_generator(batch_size)
-logger_1 = Logger(validation_data, patch_size, stride=stride)
+unet.fit(patch_generator, steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=[logger])
+
+output = process_unet(unet, validation_data.imgs)
+
+check_results_unet(validation_data.imgs, validation_data.lbls, validation_data.msks, output=output)

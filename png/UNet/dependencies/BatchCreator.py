@@ -66,7 +66,7 @@ class UNetBatchCreator(BatchCreator):
         
         for i, l in enumerate(locations):
             index, y, x = l
-            x_data[i], y_out = patch_extractor.get_patch(self.imgs[index], self.lbls[index], (y,x))
+            x_data[i], y_out = self.patch_extractor.get_patch(self.imgs[index], self.lbls[index], (y,x))
             y_data[i] = to_categorical(y_out)
                     
         return x_data, y_data
