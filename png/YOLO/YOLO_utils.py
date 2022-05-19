@@ -81,16 +81,17 @@ def json2bbox(annotation_file, image_id):
     
     for annotations in json_data['annotations']:
         if annotations['image_id'] == image_id:
-           x = annotations['bbox'][0]
-           y = annotations['bbox'][1]
-           w = annotations['bbox'][2]
-           h = annotations['bbox'][3]
-                  
-           n_boxes.append(BoundingBox(x, y, w, h))
-           
+            
+            x = annotations['bbox'][0]
+            y = annotations['bbox'][1]
+            w = annotations['bbox'][2]
+            h = annotations['bbox'][3]
+            n_boxes.append(BoundingBox(x, y, w, h))
+        
         else:
             continue
-          
+
+        
     return n_boxes
 
 class BoundingBox:
@@ -132,15 +133,16 @@ class BoundingBox:
 def get_matplotlib_boxes(boxes, img_shape):
     
     plt_boxes = []
+    plt_coords = []
     for box in boxes:
-        
         for b in box:
-            xmin  = int((b.x - b.w/2) * img_shape[1])
-            xmax  = int((b.x + b.w/2) * img_shape[1])
-            ymin  = int((b.y - b.h/2) * img_shape[0])
-            ymax  = int((b.y + b.h/2) * img_shape[0])        
+            xmin  = int(b.x)
+            xmax  = int(b.x + b.w)
+            ymin  = int(b.y)
+            ymax  = int(b.y + b.h)        
             plt_boxes.append(patches.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin, fill=False, color='#00FF00', linewidth='2'))
-    return plt_boxes
+            plt_coords.append([xmin, xmax, ymin, ymax])
+    return plt_boxes, plt_coords
 
 
 def space_to_depth_x2(x):
@@ -448,57 +450,59 @@ class Loss(tf.keras.losses.Loss):
 ####
 ####
 
+def reshape(img: np.array, dim = 256) -> np.array:
+    x, y, _ = img.shape
+    img_cropped = img[:min(x,dim), :min(y,dim), :]
+    padding = ((0,max(0,dim-x)),(0,max(0,dim-y)),(0,0))
+    return np.pad(img_cropped, pad_width = padding, mode='constant')
+
 workdir = Path(".")
 
 # Define directory of training images
 train_dir_images = workdir / 'roi-level-annotations' / 'tissue-cells' /'images'
 annotation_file = workdir / 'roi-level-annotations' / 'tissue-cells' /'tiger-coco.json'
 
-imgs = {}
-
-filename_list = []
-image_list = []
-bbox_list = []
-id_list = []
+imgs = []
 
 print('Reading images and labels...')
 for image_id in range(len(listdir(train_dir_images))):
+    
+    case_dict = {}
+    
     case = train_dir_images / (listdir(train_dir_images)[image_id])
     
     # Open image with opencv and visualize it
     image = cv2.imread(str(case))
-    image.resize(256,256,3)
+    image = reshape(image)
     bbox = json2bbox(annotation_file, image_id)
     
-    plt_boxes = get_matplotlib_boxes([bbox],image.shape)
+    case_dict['id'] = image_id
+    case_dict['filename'] = str(case)
+    case_dict['image'] = image
+    case_dict['bbox'] = bbox
     
-    id_list.append(image_id)
-    filename_list.append(str(case))
-    image_list.append(image)
-    bbox_list.append(bbox)
-
-imgs['id'] = id_list
-imgs['filename'] = filename_list
-imgs['image'] = image_list
-imgs['bbox'] = bbox_list
-
-
+    imgs.append(case_dict)
+    
+    if image_id == 200:
+        break
+    
 print('Images and labels loaded')
-
 '''
-# Get bounding boxes in matplotlib format
-plt_boxes = get_matplotlib_boxes([bbox],image.shape)
+id = 3
 
+# Get bounding boxes in matplotlib format
+plt_boxes = get_matplotlib_boxes([imgs[id]['bbox']], imgs[id]['image'].shape)
 
 # Visualize image and bounding box
 fig = plt.figure(figsize=(10, 10))
 ax = fig.add_subplot(111, aspect='equal')
-plt.imshow(image.squeeze(), cmap='gray')
+plt.imshow(imgs[id]['image'].squeeze(), cmap='gray')
+
 for plt_box in plt_boxes:
     ax.add_patch(plt_box)
 plt.show()
 '''
-    
+
 # define configuration parameters for batch generator
 
 LABELS = ['lymphocytes and plasma cells'] # Lym = lymphocites, Plm = plasma cells
@@ -594,13 +598,28 @@ dummy_array = np.zeros((1,1,1,1,TRUE_BOX_BUFFER,4))
 
 print('Training model...')
 
+img_train = []
+bbox_train = []
+
+for image in range(len(imgs[:train_valid_split])):
+    img_train.append(imgs[:train_valid_split][image]['image'])
+    bbox_train.append(get_matplotlib_boxes([imgs[:train_valid_split][image]['bbox']], (256,256,3))[1])
+    
+img_valid = []
+bbox_valid = []
+
+for image in range(len(imgs[train_valid_split:])):
+    img_valid.append(imgs[train_valid_split:][image]['image'])
+    bbox_valid.append(get_matplotlib_boxes([imgs[train_valid_split:][image]['bbox']], (256,256,3))[1])
+    
+    
 # compile YOLO model
 loss = Loss(16, 16, 16, ANCHORS, n_boxes = 5)
 model.compile(loss=loss, optimizer=optimizer)
 # do training
-model.fit(train_batch,
-            validation_data = valid_batch,
-            epochs=n_epoch,
+model.fit(x = img_train,
+          y = bbox_train,
+          epochs=n_epoch,
             callbacks=[early_stop, checkpoint])
 
 print('Training finished')
@@ -614,13 +633,13 @@ print('Training finished')
 #test_img = cv2.imread(str(test_dir.joinpath(test_file_list[img_index])))
 
 
-'''
+
 # define a threshold to apply to predictions
 obj_threshold=0.2
 
 # predict bounding boxes using YOLO model2
 boxes = predict_bounding_box(val / test_file_list[img_index], model, obj_threshold, NMS_THRESHOLD, ANCHORS, CLASS)
-print(test_file_list[img_index])
+#print(test_file_list[img_index])
 # get matplotlib bbox objects
 plt_boxes = get_matplotlib_boxes(boxes, test_img.shape)
 
@@ -631,4 +650,3 @@ plt.imshow(test_img, cmap='gray')
 for plt_box in plt_boxes:
     ax.add_patch(plt_box)
 plt.show()
-'''
