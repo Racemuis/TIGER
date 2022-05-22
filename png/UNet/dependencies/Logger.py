@@ -45,12 +45,13 @@ class UNetLogger(tensorflow.keras.callbacks.Callback):
 
     def on_epoch_end(self, batch, logs={}):
         dice = self.validate()
+        print(f"Dice: {dice}")
         self.dices.append([len(self.losses), dice])
         if dice > self.best_dice:
             print('updating the best model')
             self.best_dice = dice
             self.best_model = self.model#.get_weights()
-        self.plot()
+        # self.plot()
 
     def validate(self):
         # need to pad image such that the size can be divisable by 8
@@ -60,7 +61,7 @@ class UNetLogger(tensorflow.keras.callbacks.Callback):
         pad_val_imgs = np.pad(self.val_imgs, pad_width=padding, mode='constant')
 
         # run unet model
-        predicted_lbls = np.argmax(self.model.predict(pad_val_imgs, batch_size=1), axis=-1)
+        predicted_lbls = np.argmax(self.model.predict(pad_val_imgs, batch_size=1), axis=-1)+1
         
         # crop it back because we pad it before
         b, h, w = predicted_lbls.shape

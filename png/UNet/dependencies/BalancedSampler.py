@@ -12,7 +12,7 @@ class BalancedSampler:
 
     def generate_sample_locations(self, batch_size):
         # generate locations half from the positive set and half from the negative set
-        p_locations = random.sample(self.p_idxs, batch_size // 2)
-        n_locations = random.sample(self.n_idxs, batch_size - batch_size // 2)
+        p_locations = random.sample(self.p_idxs, min(len(self.p_idxs), batch_size // 2))
+        n_locations = random.sample(self.n_idxs, min(len(self.n_idxs), batch_size - batch_size // 2))
         locations = np.vstack([p_locations, n_locations])
         return locations

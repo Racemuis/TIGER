@@ -84,13 +84,15 @@ def check_results_unet(imgs, lbls, msks, output, threshold=0.5):
         print('image:', i, 'dice', dice)
         
         # plot the results
+        
         f, axes = plt.subplots(1, 4)
         for ax, im, t in zip(axes, 
-                             (img, raw_output, final_output, lbl), 
+                             (img, np.array(raw_output), np.array(final_output), lbl), 
                              ('RGB image', 'Soft prediction', 'Thresholded', 'Ground truth')):
             ax.imshow(im, cmap='gray')
             ax.set_title(t)
         plt.show()
+        
         
     print('mean dice', np.mean(dices))
 
