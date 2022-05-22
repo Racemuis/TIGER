@@ -5,7 +5,7 @@ import copy
 from PIL import Image
 from tensorflow.keras.utils import Sequence
 from imgaug import augmenters as iaa
-from BoundBox import BoundBox, bbox_iou
+from dependencies.BoundBox import BoundBox, bbox_iou
 
 class BatchGenerator(Sequence):
     def __init__(self, images, width, height, config, shuffle=True, jitter=True, norm=None):
@@ -249,12 +249,11 @@ class BatchGenerator(Sequence):
     def aug_image(self, train_instance, jitter):
         image_name = train_instance["filename"]
         image_raw = Image.open(str(image_name))
-        width, height = image_raw.size
         
         if image_raw is None:
             raise IOError(f"Error opening image: {image_name}, image is None")
         
-        image = np.reshape(np.array(image_raw.getdata(), dtype='uint8'), (width, height, 3))
+        image =  np.asarray(image_raw)
         h, w, _ = image.shape
         """
         x_pad = np.max(self.width - w, 0)

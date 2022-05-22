@@ -21,7 +21,6 @@ from tensorflow.keras.optimizers import Adam
 
 # matplotlib is needed to plot bounding boxes
 import matplotlib.pyplot as plt
-import cv2
 from PIL import Image
 
 # import dependencies
@@ -32,7 +31,6 @@ from dependencies.Loss import Loss
 def normalize(image):
     image = image / 255.
     return image
-
 
 def plot_image_with_boxes(image, boxes):
     f, ax = plt.subplots()
@@ -105,8 +103,6 @@ parent = os.path.dirname(path)
 
 X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
 y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
-# MSKS_DIR =os.path.join(parent, r'data_sample\wsirois\wsi-level-annotations\annotations-tissue-cells-masks')
-
 all_imgs, seen_labels = parse_annotation(y_DIR, X_DIR, ["lymphocytes and plasma cells"])
 max_height = max([img['height'] for img in all_imgs])+1
 max_width =  max([img['width'] for img in all_imgs])+1

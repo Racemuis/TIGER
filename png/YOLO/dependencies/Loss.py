@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from dataclasses import dataclass
-from BoundBox import tf_iou
+from dependencies.BoundBox import tf_iou
 
 @dataclass
 class Scales:

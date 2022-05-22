@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from decoding import tf_iou
+from dependencies.decoding import tf_iou
 
 class BoundBox:
     def __init__(self, x, y, w, h, c = None, classes = None):
