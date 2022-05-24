@@ -98,11 +98,14 @@ def parse_annotation(ann_dir, img_dir, labels=[]):
 
 
 # Set paths to the data
-path = os.getcwd()
-parent = os.path.dirname(path)
-
-X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
-y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
+os.chdir(os.path.dirname(os.getcwd()))
+os.chdir(os.path.dirname(os.getcwd()))
+os.chdir(os.path.dirname(os.getcwd()))
+path = os.path.dirname(os.getcwd())
+x_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-cells\images')
+y_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json')
+#X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
+#y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
 all_imgs, seen_labels = parse_annotation(y_DIR, X_DIR, ["lymphocytes and plasma cells"])
 max_height = max([img['height'] for img in all_imgs])+1
 max_width =  max([img['width'] for img in all_imgs])+1

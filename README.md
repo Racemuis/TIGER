@@ -16,4 +16,13 @@ The project repository for the TIGER challenge by group 9 of the course "NWI-IMC
 
 Alternatively, you can permanently add the `*\ASAP 2.0\bin` folder to your python path under `system properties -> Advanced -> Environment variables`.
 
+## Snellius
+For the use of Snellius use the following commands. Each command should be separted used and in this order. Also do not actiavte an enviormnet. Stay in base.
+  ```
+  module load 2021
+  module load TensorFlow/2.6.0-foss-2021a-CUDA-11.3.1
+  module load matplotlib/3.4.2-foss-2021a
+  module load ASAP/2.0-foss-2021a-CUDA-11.3.1
+
+  ```
 
