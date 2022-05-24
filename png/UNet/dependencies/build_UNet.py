@@ -104,7 +104,7 @@ def process_unet(model, imgs):
     pad_imgs = np.pad(imgs, pad_width=padding, mode='constant')
     
     # run unet model
-    output = np.argmax(model.predict(pad_imgs, batch_size=1), axis = -1)+1
+    output = np.argmax(model.predict(pad_imgs, batch_size=1), axis = -1)
     
     # don't forget to crop it back because you pad it before.
     _, h, w, _ = imgs.shape

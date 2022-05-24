@@ -7,8 +7,8 @@ class BalancedSampler:
         # pre calculate the positive and negative indices
         lbls = np.squeeze(lbls, 3)
         msks = np.squeeze(msks, 3)
-        self.p_idxs = np.asarray(np.where(lbls > 0)).T.tolist()
-        self.n_idxs = np.asarray(np.where((msks > 0) & ~(lbls > 0))).T.tolist()
+        self.p_idxs = np.asarray(np.where(lbls > 3)).T.tolist()
+        self.n_idxs = np.asarray(np.where((msks > 0) & ~(lbls > 3))).T.tolist()
 
     def generate_sample_locations(self, batch_size):
         # generate locations half from the positive set and half from the negative set

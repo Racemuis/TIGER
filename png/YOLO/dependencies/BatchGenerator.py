@@ -1,11 +1,50 @@
 import numpy as np
+import sys
+import os
 import cv2
 import copy
 
+from pathlib import Path
 from PIL import Image
 from tensorflow.keras.utils import Sequence
 from imgaug import augmenters as iaa
 from dependencies.BoundBox import BoundBox, bbox_iou
+import multiresolutionimageinterface as mir
+
+def tif_to_numpy(path: Path, level: int, width: int = None, height: int = None) -> np.array:
+    """Opens a multiresolution tif image with ASAP python bindings
+
+    Args:
+        path (Path): path to image
+        level (int): the zoom level of the image (lower = heavier)
+        width (int): the width of the image patch, if None, the entire image is selected
+            Default = None
+        height (int): the height of the image patch, if None, the entire image is selected
+            Default = None
+
+
+    Raises:
+        IOError: raises when opened image is None
+
+    Returns:
+        np.array: opened multiresolution image as a numpy array
+    """
+    reader = mir.MultiResolutionImageReader()
+    image = reader.open(str(path))
+    if image is None:
+        raise IOError(f"Error opening image: {path}, image is None")
+
+    # Get the width and the height of the image
+    x, y = image.getLevelDimensions(level)
+
+    if width == None:
+        width = x
+    if height == None:
+        height = y
+
+    # Convert a patch of the image to an numpy array
+    image_array = image.getUCharPatch(startX=0, startY=0, width=width, height=height, level=level)
+    return image_array.astype(int)
 
 class BatchGenerator(Sequence):
     def __init__(self, images, width, height, config, shuffle=True, jitter=True, norm=None):
@@ -248,12 +287,20 @@ class BatchGenerator(Sequence):
 
     def aug_image(self, train_instance, jitter):
         image_name = train_instance["filename"]
-        image_raw = Image.open(str(image_name))
+
+        valid_images = [".png",".tif"]
+        ext = os.path.splitext(image_name)[1]
+
+        if ext.lower() not in valid_images:
+            print(f"The file {image_name} has not got a valid extension.\nValid extensions are: .png, .tif", file=sys.stderr)
+            return None
+
+        elif ext == ".png":
+            image = np.asarray(Image.open(str(image_name)))
+
+        elif ext == ".tif":
+            image = tif_to_numpy(image_name, level = 5)        
         
-        if image_raw is None:
-            raise IOError(f"Error opening image: {image_name}, image is None")
-        
-        image =  np.asarray(image_raw)
         h, w, _ = image.shape
         """
         x_pad = np.max(self.width - w, 0)

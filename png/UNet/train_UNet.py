@@ -2,6 +2,7 @@
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import numpy as np
+import matplotlib.pyplot as plt
 
 from dependencies.DataSet import DataSet
 from dependencies.PatchExtractor import PatchExtractor
@@ -23,14 +24,16 @@ y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\pro
 # X_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
 # y_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
 
+TIFF_READING_LEVEL = 5 # Available levels: 0-6
 rois_files = get_file_list(X_DIR, ext = '.png')
 rois_lbls = [os.path.join(y_DIR, f) for f in get_contents(X_DIR, ext = '.png')]#get_file_list(y_DIR, ext = '.png')
 
-train_rois_i = [load_img(f) for f in tqdm(rois_files, desc= "Loading images")]
+train_rois_i = [load_img(f, TIFF_READING_LEVEL) for f in tqdm(rois_files, desc= "Loading images")]
 train_msks_i = [np.ones(roi.shape) for roi in tqdm(train_rois_i, desc = "Creating masks")]
 train_rois = [reshape(f)/255 for f in tqdm(train_rois_i, desc = "Reshaping images")]
-train_lbls = [np.squeeze(reshape(np.expand_dims(load_img(f), axis = 2))) for f in tqdm(rois_lbls, desc = "Loading labels")]
-train_msks = [reshape(f)[:, :, 0] for f in tqdm(train_msks_i, desc = "Reshaping masks")]
+train_lbls = [np.squeeze(reshape(np.expand_dims(load_img(f, TIFF_READING_LEVEL), axis = 2))) for f in tqdm(rois_lbls, desc = "Loading labels")]
+
+train_msks = [reshape(f)[:, :, 0].astype(float) for f in tqdm(train_msks_i, desc = "Reshaping masks")]
 
 # Define the number of validation images
 n_validation_imgs = int(np.floor(0.2 * len(train_rois)))
@@ -45,6 +48,9 @@ for img in train_msks_i[:n_validation_imgs]:
 
 # the rest as training
 train_data = DataSet(train_rois[n_validation_imgs:], train_msks[n_validation_imgs:], train_lbls[n_validation_imgs:])
+
+# for i, _ in enumerate(train_data.imgs):
+#    train_data.show_image(i)
 
 # Free some memory
 del train_rois_i
@@ -64,14 +70,14 @@ batch_creator = UNetBatchCreator(patch_extractor, train_data, patch_size)
 patch_generator = batch_creator.get_generator(batch_size)
 logger = UNetLogger(validation_data)
 
-unet = build_unet(initial_filters=16, n_classes=7, batchnorm=True, dropout=True, printmodel=True)
+unet = build_unet(initial_filters=16, n_classes=8, batchnorm=True, dropout=True, printmodel=True)
 
 optimizer = Adam(learning_rate)
 unet.compile(optimizer, loss='categorical_crossentropy')
 
 unet.fit(patch_generator, steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=[logger])
 
-logger.best_model.save("UNet")
+logger.best_model.save("Best_UNet")
 
 unet.save("Final_UNet")
 
