@@ -2,6 +2,8 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, UpSampling2D, concatenate, BatchNormalization
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.cm import get_cmap
 
 from dependencies.Logger import pad_ensure_division
 def unet_block(inputs, n_filters, batchnorm=False, dropout=False):
@@ -68,33 +70,50 @@ def build_unet(initial_filters=16, n_classes=3, batchnorm=False, dropout=False, 
     
     return model
 
-def calculate_dice(x, y):
-    '''returns the dice similarity score, between two boolean arrays'''
-    return 2 * np.count_nonzero(x & y) / (np.count_nonzero(x) + np.count_nonzero(y))
+def calculate_dice(x, y, class_x, class_y):
+    '''returns the dice similarity score between two arrays, given the input classes'''
+    tp = np.count_nonzero(x[x == y][x[x == y] == class_x]) 
+    fp = np.count_nonzero(x[x != y][x[x != y] == class_x])
+    fn = np.count_nonzero(x[x != y][x[x != y] != class_x])
+    denom = (2 * tp + fp + fn) if (2 * tp + fp + fn) >0 else 1
+    return 2 * tp/denom
 
 def check_results_unet(imgs, lbls, msks, output, threshold=0.5):
 
     dices = []
     for i, (img, lbl, _, raw_output) in enumerate(zip(imgs, lbls, msks, output)):
-        final_output = raw_output*(255/3)
-        
+        final_output = raw_output
 #         print('Output_mask: {}\nLbl: {}'.format(final_output[3].shape, lbl.shape))
-        dice = calculate_dice(raw_output.flatten(), lbl.flatten())
-        dices.append(dice)
-        print('image:', i, 'dice', dice)
+        dice_s = calculate_dice(raw_output.flatten(), lbl.flatten(), 0, 2)
+        dice_t = calculate_dice(raw_output.flatten(), lbl.flatten(), 1, 2)
+        dices.append(dice_s)
+        dices.append(dice_t)
+        print(f'image: {i}\n\tdice [stroma vs rest]: {dice_s}\n\tdice [invasive tumor vs rest]: {dice_t}')
         
         # plot the results
-        
         f, axes = plt.subplots(1, 4)
         for ax, im, t in zip(axes, 
                              (img, np.array(raw_output), np.array(final_output), lbl), 
                              ('RGB image', 'Soft prediction', 'Thresholded', 'Ground truth')):
-            ax.imshow(im, cmap='gray')
+
+            
+            im = ax.imshow(im)
+            values = [0,1,2]
+            labels = ['Stroma', 'invasive tumor', 'rest']
+            cmap = get_cmap('viridis')
+
+            colours = [cmap((i)*0.5) for i in values]
+            # create a patch (proxy artist) for every color 
+            patches = [ mpatches.Patch(color=colours[i], label=labels[i] ) for i in range(len(values)) ]
+            # put those patched as legend-handles into the legend
+            plt.legend(handles=patches, loc='upper center', bbox_to_anchor=(-0.7, -0.25), borderaxespad=0., ncol = 3)
+
+            
             ax.set_title(t)
         plt.show()
         
         
-    print('mean dice', np.mean(dices))
+    #print('mean dice', np.mean(dices))
 
 def process_unet(model, imgs):
     # pad image if the size is not divisable by total downsampling rate in your U-Net 

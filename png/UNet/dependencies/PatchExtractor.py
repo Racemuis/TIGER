@@ -19,15 +19,13 @@ class PatchExtractor:
         '''
         y, x = location
         py, px = self.patch_size
-        
-        
-        
         # - patch should be a numpy array of size <h, w>
         # - the patch should be normalized (intensity values between 0-1)
     
         img_patch = image[y-py//2:y+(py-py//2), x-px//2:x+(px-px//2), :]
         label_patch = mask[y-py//2:y+(py-py//2), x-px//2:x+(px-px//2)]
-        
+        #img_patch = image[y:y+py, x:x+px, :]
+        #label_patch = mask[y:y+py, x:x+px]
         img_patch = (img_patch - np.min(img_patch))/max(1,(np.max(img_patch)-np.min(img_patch)))
         label_patch = (label_patch - np.min(label_patch))/max(1,(np.max(label_patch)-np.min(label_patch)))
         

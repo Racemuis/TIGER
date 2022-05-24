@@ -66,4 +66,4 @@ def reshape(img: np.array, dim = 512) -> np.array:
     x, y, _ = img.shape
     img_cropped = img[:min(x,dim), :min(y,dim), :]
     padding = ((0,max(0,dim-x)),(0,max(0,dim-y)),(0,0))
-    return np.pad(img_cropped, pad_width = padding, mode='constant', constant_values = 8)
+    return np.pad(img_cropped, pad_width = padding, mode='constant', constant_values = 0)

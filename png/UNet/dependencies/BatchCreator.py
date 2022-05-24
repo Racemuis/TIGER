@@ -11,7 +11,7 @@ def pad(images, patch_size):
     '''
     half_py, half_px = [p//2 for p in patch_size]
     paddings = ((0, 0), (half_py, half_py), (half_px, half_px), (0, 0))
-    return np.pad(np.array(images), pad_width=paddings, mode='constant') 
+    return np.pad(np.array(images), pad_width=paddings, mode='constant', constant_values = 0) 
 
 class BatchCreator:
     
@@ -24,7 +24,7 @@ class BatchCreator:
         self.lbls = pad(np.expand_dims(dataset.lbls, 3), border_pad_size)
         self.msks = pad(np.expand_dims(dataset.msks, 3), border_pad_size)
         self.patch_extractor = patch_extractor
-        self.patch_location_sampler = BalancedSampler(self.lbls, self.msks)
+        self.patch_location_sampler = BalancedSampler(self.lbls, self.msks, border_pad_size)
 
     def create_batch(self, batch_size):
         '''
@@ -36,6 +36,7 @@ class BatchCreator:
         
         for i, l in enumerate(locations):
             index, y, x = l
+            print(y, x, self.imgs[index].shape)
             x_data[i], y_full = self.patch_extractor.get_patch(self.imgs[index], self.lbls[index], (y,x))
             label = y_full[y_full.shape[0]//2, y_full.shape[1]//2].squeeze()%254
             y_data[i] = np.array([1-label, label])
@@ -53,20 +54,20 @@ class UNetBatchCreator(BatchCreator):
         super(UNetBatchCreator, self).__init__(patch_extractor, dataset,
                                                     border_pad_size)
 
-        self.patch_location_sampler = BalancedSampler(self.lbls, self.msks)
+        self.patch_location_sampler = BalancedSampler(self.lbls, self.msks, border_pad_size)
     
     def create_batch(self, batch_size):
         '''
         returns a batch of image patches (x) with corresponding label patches (y) in one-hot structure
         '''
         x_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 3))
-        y_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 8))  # one-hot encoding
+        y_data = np.zeros((batch_size, *self.patch_extractor.patch_size, 3))  # one-hot encoding
 
         locations = self.patch_location_sampler.generate_sample_locations(batch_size)
         
         for i, l in enumerate(locations):
             index, y, x = l
             x_data[i], y_out = self.patch_extractor.get_patch(self.imgs[index], self.lbls[index], (y,x))
-            y_data[i] = to_categorical(y_out, num_classes = 8)
+            y_data[i] = to_categorical(y_out, num_classes = 3)
                     
         return x_data, y_data

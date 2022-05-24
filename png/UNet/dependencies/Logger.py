@@ -8,9 +8,15 @@ def downscale(images, stride):
     # Downscale if the network does pooling
     return np.array(images)[:, ::stride, ::stride]
 
-def calculate_dice(x, y):
-    '''returns the dice similarity score, between two boolean arrays'''
-    return 2 * np.count_nonzero(x & y) / (np.count_nonzero(x) + np.count_nonzero(y))
+def calculate_dice(x, y, class_x, class_y):
+    '''returns the dice similarity score between two arrays, given the input classes'''
+    #return 2 * np.count_nonzero(x & y) / (np.count_nonzero(x) + np.count_nonzero(y))
+    tp = np.count_nonzero(x[x == y][x[x == y] == class_x]) 
+    fp = np.count_nonzero(x[x != y][x[x != y] == class_x])
+    fn = np.count_nonzero(x[x != y][x[x != y] != class_x])
+    denom = (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 1
+    return 2 * tp/denom
+    
 
 def pad_ensure_division(h, w, division):
 
@@ -45,11 +51,11 @@ class UNetLogger(tensorflow.keras.callbacks.Callback):
 
     def on_epoch_end(self, batch, logs={}):
         dice = self.validate()
-        print(f"Dice: {dice}")
+        print(f" Dices: {dice}")
         self.dices.append([len(self.losses), dice])
-        if dice > self.best_dice:
+        if np.mean(dice) > self.best_dice:
             print('updating the best model')
-            self.best_dice = dice
+            self.best_dice = np.mean(dice)
             self.best_model = self.model#.get_weights()
         # self.plot()
 
@@ -70,7 +76,7 @@ class UNetLogger(tensorflow.keras.callbacks.Callback):
         x = self.val_lbls[self.val_msks]
         y = predicted_lbls[self.val_msks]
         
-        return calculate_dice(x, y)
+        return calculate_dice(x, y, 0, 2), calculate_dice(x, y, 1, 2)
 
     def plot(self):
         N = len(self.losses)
