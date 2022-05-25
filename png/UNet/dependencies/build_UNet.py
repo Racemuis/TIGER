@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.cm import get_cmap
 
-from dependencies.Logger import pad_ensure_division
+from dependencies.Logger import pad_ensure_division, categorical_dice
 def unet_block(inputs, n_filters, batchnorm=False, dropout=False):
     
     cl = Conv2D(n_filters, 3, activation='relu', padding='same')(inputs)
@@ -89,7 +89,6 @@ def check_results_unet(imgs, lbls, msks, output, threshold=0.5):
         dices.append(dice_s)
         dices.append(dice_t)
         print(f'image: {i}\n\tdice [stroma vs rest]: {dice_s}\n\tdice [invasive tumor vs rest]: {dice_t}')
-        
         # plot the results
         f, axes = plt.subplots(1, 4)
         for ax, im, t in zip(axes, 
@@ -108,13 +107,9 @@ def check_results_unet(imgs, lbls, msks, output, threshold=0.5):
             # put those patched as legend-handles into the legend
             plt.legend(handles=patches, loc='upper center', bbox_to_anchor=(-0.7, -0.25), borderaxespad=0., ncol = 3)
 
-            
             ax.set_title(t)
         plt.show()
         
-        
-    #print('mean dice', np.mean(dices))
-
 def process_unet(model, imgs):
     # pad image if the size is not divisable by total downsampling rate in your U-Net 
     _, h, w, _ = imgs.shape
@@ -127,6 +122,6 @@ def process_unet(model, imgs):
     
     # don't forget to crop it back because you pad it before.
     _, h, w, _ = imgs.shape
-    output = output[:, py0:h-py1, px0:w+1]#-px1]
+    output = output[:, py0:h-py1, px0:w-px1]
 
     return output

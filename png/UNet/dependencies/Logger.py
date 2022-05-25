@@ -1,4 +1,5 @@
 import tensorflow.keras.callbacks
+import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -16,7 +17,15 @@ def calculate_dice(x, y, class_x, class_y):
     fn = np.count_nonzero(x[x != y][x[x != y] != class_x])
     denom = (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 1
     return 2 * tp/denom
-    
+
+def categorical_dice(y_true: np.array, y_pred: np.array, n_categories = 3):
+    epsilon = 1 # Avoids division by 0
+    dice = 0
+    for i in range(n_categories):
+        intersection = tf.math.reduce_sum(y_pred[..., i] * y_true[..., i])
+        dice += (2 * intersection + epsilon) / (tf.math.reduce_sum(y_true[..., i]) + tf.math.reduce_sum(y_pred[..., i]) + epsilon)
+    return dice/n_categories
+
 
 def pad_ensure_division(h, w, division):
 
@@ -51,32 +60,31 @@ class UNetLogger(tensorflow.keras.callbacks.Callback):
 
     def on_epoch_end(self, batch, logs={}):
         dice = self.validate()
-        print(f" Dices: {dice}")
         self.dices.append([len(self.losses), dice])
         if np.mean(dice) > self.best_dice:
             print('updating the best model')
             self.best_dice = np.mean(dice)
-            self.best_model = self.model#.get_weights()
-        # self.plot()
+            self.best_model = self.model
 
     def validate(self):
-        # need to pad image such that the size can be divisable by 8
+        # Pad the image such that the size can be divisable by 8
         h, w = self.val_imgs.shape[1:3]
         (py0, py1), (px0, px1) = pad_ensure_division(h, w, 8)
         padding = ((0, 0), (py0, py1), (px0, px1), (0, 0))
         pad_val_imgs = np.pad(self.val_imgs, pad_width=padding, mode='constant')
 
-        # run unet model
-        predicted_lbls = np.argmax(self.model.predict(pad_val_imgs, batch_size=1), axis=-1)
+        # Run unet model
+        predicted_lbls = self.model.predict(pad_val_imgs, batch_size=1)
         
-        # crop it back because we pad it before
-        b, h, w = predicted_lbls.shape
-        predicted_lbls = predicted_lbls[:, py0:h-py1, px0:w-px1]
+        # Crop it back
+        b, h, w, _ = predicted_lbls.shape
+        predicted_lbls = predicted_lbls[:, py0:h-py1, px0:w-px1, :]
 
-        x = self.val_lbls[self.val_msks]
-        y = predicted_lbls[self.val_msks]
+        # Apply the mask
+        x = self.val_lbls[self.val_msks].astype(float)
+        y = predicted_lbls[self.val_msks].astype(float)
         
-        return calculate_dice(x, y, 0, 2), calculate_dice(x, y, 1, 2)
+        return categorical_dice(x, y)
 
     def plot(self):
         N = len(self.losses)
