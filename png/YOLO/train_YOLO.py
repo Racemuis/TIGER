@@ -189,7 +189,7 @@ download_weights(url='https://surfdrive.surf.nl/files/index.php/s/HGmdukdYpnyt2N
                        extract_dir_name="pretrained_yolo_weights",
                        workdir=".")
 
-wt_path = "." / 'pretrained_yolo_weights'
+wt_path = "." / 'pretrained_yolo_weights / pretrained_yolo_weights.h5'
 model.load_weights(wt_path)
 print("Weights loaded from disk")
 
