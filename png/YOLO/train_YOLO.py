@@ -27,6 +27,7 @@ from PIL import Image
 from dependencies.BatchGenerator import BatchGenerator
 from dependencies.YOLO_network import YOLO_network
 from dependencies.Loss import Loss
+from YOLO_utils import download_weights
 
 def normalize(image):
     image = image / 255.
@@ -182,6 +183,15 @@ optimizer = Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.75, epsilon=1
 dummy_array = np.zeros((1,1,1,1,TRUE_BOX_BUFFER,4))
 
 model = YOLO_network(input_image, true_boxes, CLASS, BOX, GRID_H, GRID_W)
+
+download_weights(url='https://surfdrive.surf.nl/files/index.php/s/HGmdukdYpnyt2NV/download',
+                       download_zipfile_name="pretrained_yolo_weights.zip",
+                       extract_dir_name="pretrained_yolo_weights",
+                       workdir=".")
+
+wt_path = "." / 'pretrained_yolo_weights'
+model.load_weights(wt_path)
+print("Weights loaded from disk")
 
 # compile YOLO model
 loss = Loss(BATCH_SIZE, GRID_H, GRID_W, ANCHORS, n_boxes = 5)
