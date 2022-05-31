@@ -1,7 +1,7 @@
 import os
 import sys
 import numpy as np
-import multiresolutionimageinterface as mir
+#import multiresolutionimageinterface as mir
 
 from PIL import Image
 from pathlib import Path

@@ -96,7 +96,9 @@ unet = build_unet(initial_filters=16, n_classes=3, batchnorm=True, dropout=True,
 optimizer = Adam(learning_rate)
 unet.compile(optimizer, loss='categorical_crossentropy', metrics=[CategoricalAccuracy(), categorical_dice])
 
-checkpoint_filepath = './tmp/checkpoint'
+
+checkpoint_filepath ='Tiger/png/UNet/saved_model/model_Unet.h5'
+
 model_checkpoint_callback = ModelCheckpoint(
     filepath=checkpoint_filepath,
     save_weights_only=False,
@@ -111,8 +113,12 @@ unet.fit(patch_generator,
         np.array(to_categorical(validation_data.lbls, num_classes = 3))), 
         callbacks=[logger, model_checkpoint_callback])
 
-output = process_unet(unet, np.array(validation_data.imgs))
-output_train = process_unet(unet, np.array(train_data.imgs))
+unet2 = build_unet(initial_filters=16, n_classes=3, batchnorm=True, dropout=True, printmodel=True)
+unet2.load_weights("./"+checkpoint_filepath)
+output = process_unet(unet2, np.array(validation_data.imgs))
+output_train = process_unet(unet2, np.array(train_data.imgs))
+#output = process_unet(loaded_model, np.array(validation_data.imgs))
+#output_train = process_unet(loaded_model, np.array(train_data.imgs))
 new_out = []
 new_lbl = []
 new_img = []
