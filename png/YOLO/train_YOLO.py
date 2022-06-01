@@ -139,26 +139,30 @@ if not CLUSTER_MODE:
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 # Set paths to the data
-# os.chdir(os.path.dirname(os.getcwd()))
-# os.chdir(os.path.dirname(os.getcwd()))
-# os.chdir(os.path.dirname(os.getcwd()))
-# path = os.path.dirname(os.getcwd())
-#X_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-cells\images')
-#y_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json')
-X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
-y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
+#os.chdir(os.path.dirname(os.getcwd()))
+#os.chdir(os.path.dirname(os.getcwd()))
+#os.chdir(os.path.dirname(os.getcwd()))
+#path = os.path.dirname(os.getcwd())
+#X_DIR =  os.path.join(path,r'project\data_sample\wsirois\roi-level-annotations\tissue-cells\images')
+#y_DIR =  os.path.join(path,r'project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json')
+#X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
+#y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
+y_DIR = r'C:\Users\sarah\Desktop\Uni\2. Semester\Medical_Image\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
+X_DIR = r'C:\Users\sarah\Desktop\Uni\2. Semester\Medical_Image\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
 all_imgs, seen_labels = parse_annotation(y_DIR, X_DIR, ["lymphocytes and plasma cells"])
 
 
 max_height = max([img['height'] for img in all_imgs])+1
 max_width =  max([img['width'] for img in all_imgs])+1
 
+
+
 # These parameters are mostly for the detection of the right lung
 # TODO: change parameters
 LABELS = ["lymphocytes and plasma cells"]
 
-IMAGE_H, IMAGE_W = 512, 512
-GRID_H,  GRID_W  = 16 , 16
+IMAGE_H, IMAGE_W = 1024, 1024 # use nearest power of 2 size, orginal height 1253, width 1326
+GRID_H,  GRID_W  = 32 , 32
 BOX              = 5
 CLASS            = len(LABELS)
 CLASS_WEIGHTS    = np.ones(CLASS, dtype='float32')
