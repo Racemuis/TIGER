@@ -22,14 +22,14 @@ os.chdir(os.path.dirname(os.getcwd()))
 os.chdir(os.path.dirname(os.getcwd()))
 path = os.getcwd()
 
-X_DIR = os.path.join(path, r'project/data_sample\wsirois\roi-level-annotations\tissue-bcss\images')
-y_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-bcss\masks')
+#X_DIR = os.path.join(path, r'project/data_sample\wsirois\roi-level-annotations\tissue-bcss\images')
+#y_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-bcss\masks')
 
 CLUSTER_MODE = False
 
 #Chiara directory
-#X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
-#y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
+X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
+y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
 
 # Celena directory
 # X_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'

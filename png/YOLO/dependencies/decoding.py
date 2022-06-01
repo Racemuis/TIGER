@@ -150,13 +150,13 @@ def decode_netout(netout, obj_threshold, nms_threshold, anchors, nb_class):
 
 from typing import Union
 
-def predict_bounding_box(img: Union[Path, str], model, obj_threshold, nms_threshold, anchors, nb_class, TRUE_BOX_BUFFER):
+def predict_bounding_box(img: Union[Path, str], model, obj_threshold, nms_threshold, anchors, nb_class, TRUE_BOX_BUFFER, IMAGE_H, IMAGE_W):
     """
         Predict bounding boxes for a given image.
     """    
     image = cv2.imread(str(img))
     input_image = image / 255. # rescale intensity to [0, 1]
-    input_image = input_image[:256,:256,::-1]
+    input_image = input_image[:IMAGE_H,:IMAGE_W,::-1]
     img_shape = image.shape
     input_image = np.expand_dims(input_image, 0) 
 
