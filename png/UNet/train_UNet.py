@@ -113,8 +113,11 @@ unet = build_unet(initial_filters=16, n_classes=3, batchnorm=True, dropout=True,
 optimizer = Adam(learning_rate)
 unet.compile(optimizer, loss='categorical_crossentropy', metrics=[categorical_dice])
 
+
+checkpoint_filepath ='Tiger/png/UNet/saved_model/model_Unet.h5'
+
 model_checkpoint_callback = ModelCheckpoint(
-    filepath='./intermediate_model.h5',
+    filepath=checkpoint_filepath,
     save_weights_only=False,
     monitor='val_categorical_dice',
     mode='max',
@@ -127,19 +130,20 @@ unet.fit(patch_generator,
         np.array(to_categorical(validation_data.lbls, num_classes = 3))), 
         callbacks=[logger, model_checkpoint_callback])
 
-unet.save("Final_UNet")
+unet2 = build_unet(initial_filters=16, n_classes=3, batchnorm=True, dropout=True, printmodel=True)
+unet2.load_weights("./"+checkpoint_filepath)
+output = process_unet(unet2, np.array(validation_data.imgs))
+output_train = process_unet(unet2, np.array(train_data.imgs))
+#output = process_unet(loaded_model, np.array(validation_data.imgs))
+#output_train = process_unet(loaded_model, np.array(train_data.imgs))
+new_out = []
+new_lbl = []
+new_img = []
+for i, elem in enumerate(validation_size_roi): 
+    x, y = elem[0], elem[1]
+    new_out.append(output[i][:x,:y])
+    new_lbl.append(validation_data.lbls[i][:x,:y])
+    new_img.append(validation_data.imgs[i][:x,:y])
 
-if not CLUSTER_MODE:
-    output = process_unet(unet, np.array(validation_data.imgs))
-    output_train = process_unet(unet, np.array(train_data.imgs))
-    new_out = []
-    new_lbl = []
-    new_img = []
-    for i, elem in enumerate(validation_size_roi): 
-        x, y = elem[0], elem[1]
-        new_out.append(output[i][:x,:y])
-        new_lbl.append(validation_data.lbls[i][:x,:y])
-        new_img.append(validation_data.imgs[i][:x,:y])
-
-    check_results_unet(new_img, new_lbl, validation_data.msks, new_out, threshold= 0.1)
-    check_results_unet(train_data.imgs, train_data.lbls, train_data.msks, output_train, threshold = 0.1)
+check_results_unet(new_img, new_lbl, validation_data.msks, new_out, threshold= 0.1)
+check_results_unet(train_data.imgs, train_data.lbls, train_data.msks, output_train, threshold = 0.1)
