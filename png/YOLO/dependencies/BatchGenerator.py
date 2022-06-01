@@ -302,17 +302,7 @@ class BatchGenerator(Sequence):
             image = tif_to_numpy(image_name, level = 5)        
         
         h, w, _ = image.shape
-        """
-        x_pad = np.max(self.width - w, 0)
-        y_pad = np.max(self.height - h, 0)
 
-        padding = ((0,y_pad), (0,x_pad), (0,0))
-        image = np.pad(image, pad_width = padding, mode = 'constant')
-
-        image = image[:h, :w, :]
-
-        h, w, _ = image.shape
-        """
         all_objs = copy.deepcopy(train_instance["object"])
 
         if jitter:

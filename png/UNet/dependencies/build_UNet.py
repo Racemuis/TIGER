@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.cm import get_cmap
 
-from dependencies.Logger import pad_ensure_division, categorical_dice
+from dependencies.Logger import pad_ensure_division
 def unet_block(inputs, n_filters, batchnorm=False, dropout=False):
     
     cl = Conv2D(n_filters, 3, activation='relu', padding='same')(inputs)
@@ -98,7 +98,7 @@ def check_results_unet(imgs, lbls, msks, output, threshold=0.5):
             
             im = ax.imshow(im)
             values = [0,1,2]
-            labels = ['Stroma', 'invasive tumor', 'rest']
+            labels = ['rest', 'invasive tumor', 'stroma']
             cmap = get_cmap('viridis')
 
             colours = [cmap((i)*0.5) for i in values]

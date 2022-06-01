@@ -1,8 +1,9 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
+import cv2
 import sys
+
 sys.path.append(r'C:\Program Files\ASAP 2.0\bin') # Fill in your own path here
 
 import os
@@ -21,12 +22,14 @@ from tensorflow.keras.optimizers import Adam
 
 # matplotlib is needed to plot bounding boxes
 import matplotlib.pyplot as plt
+from matplotlib import patches
 from PIL import Image
 
 # import dependencies
 from dependencies.BatchGenerator import BatchGenerator
 from dependencies.YOLO_network import YOLO_network
 from dependencies.Loss import Loss
+from dependencies.decoding import predict_bounding_box
 
 def normalize(image):
     image = image / 255.
@@ -95,18 +98,20 @@ def parse_annotation(ann_dir, img_dir, labels=[]):
 
     return all_imgs, seen_labels
 
-
+CLUSTER_MODE = False
 
 # Set paths to the data
 os.chdir(os.path.dirname(os.getcwd()))
 os.chdir(os.path.dirname(os.getcwd()))
 os.chdir(os.path.dirname(os.getcwd()))
 path = os.path.dirname(os.getcwd())
-x_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-cells\images')
-y_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json')
-#X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
-#y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
+#X_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-cells\images')
+#y_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json')
+X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
+y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
 all_imgs, seen_labels = parse_annotation(y_DIR, X_DIR, ["lymphocytes and plasma cells"])
+
+
 max_height = max([img['height'] for img in all_imgs])+1
 max_width =  max([img['width'] for img in all_imgs])+1
 
@@ -115,6 +120,9 @@ max_width =  max([img['width'] for img in all_imgs])+1
 LABELS = ["lymphocytes and plasma cells"]
 
 IMAGE_H, IMAGE_W = 256, 256
+if CLUSTER_MODE:
+    # This should be made the nearest power of 2 and the grid below should be adapted
+    IMAGE_H, IMAGE_W = max_height, max_width 
 GRID_H,  GRID_W  = 8 , 8
 BOX              = 5
 CLASS            = len(LABELS)
@@ -194,3 +202,32 @@ model.fit(train_batch,
             callbacks=[early_stop, checkpoint])
 
 model.save('./YOLO')
+
+def get_matplotlib_boxes(boxes, img_shape):
+    plt_boxes = []
+    for box in boxes:
+        xmin  = int((box.x - box.w/2) * img_shape[1])
+        xmax  = int((box.x + box.w/2) * img_shape[1])
+        ymin  = int((box.y - box.h/2) * img_shape[0])
+        ymax  = int((box.y + box.h/2) * img_shape[0])        
+        plt_boxes.append(patches.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin, fill=False, color='#00FF00', linewidth='2'))
+    return plt_boxes
+
+if not CLUSTER_MODE:
+    # define a threshold to apply to predictions
+    obj_threshold=0.5
+
+    test_img = all_imgs[train_valid_split]['filename']
+
+    boxes, img_shape = predict_bounding_box(test_img, model, obj_threshold, NMS_THRESHOLD, ANCHORS, CLASS, TRUE_BOX_BUFFER)
+    
+    # get matplotlib bbox objects
+    plt_boxes = get_matplotlib_boxes(boxes, img_shape)
+
+    # visualize result
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111, aspect='equal')
+    plt.imshow(cv2.imread(str(test_img)), cmap='gray')
+    for plt_box in plt_boxes:
+        ax.add_patch(plt_box)
+    plt.show()

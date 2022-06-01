@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as pltpatches
 
 from PIL import Image
-from dependencies import BatchGenerator
+from dependencies.BatchGenerator import BatchGenerator
 
 def parse_annotation(ann_dir, img_dir, labels=[]):
     all_imgs = []
@@ -78,9 +78,6 @@ parent = os.path.dirname(path)
 X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
 y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
 all_imgs, seen_labels = parse_annotation(y_DIR, X_DIR, ["lymphocytes and plasma cells"])
-
-batch = BatchGenerator(all_imgs[0], all_imgs[0]['width'], all_imgs[0]['height'], None, norm=None)
-
 
 boxes = all_imgs[0]['object']
 img = Image.open(str(all_imgs[0]['filename'])).convert("RGB")

@@ -27,7 +27,7 @@ class DataSet:
                 ax.imshow(im)
                 ax.set_title(t)
         values = [0,1,2]
-        labels = ['Stroma', 'invasive tumor', 'rest']
+        labels = ['rest', 'invasive tumor', 'stroma']
         cmap = get_cmap('viridis')
 
         colours = [cmap((i)*0.5) for i in values]

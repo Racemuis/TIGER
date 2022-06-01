@@ -77,8 +77,6 @@ def process_folder(path: Path, targets: np.array = None, level: int = 5) -> np.a
     
     Returns:
         np.array: all the images in the directory
-
-    TODO:   Add possibility to read XML files for the labels
     
     # The valid image types
     valid_images = [".png",".tif"]

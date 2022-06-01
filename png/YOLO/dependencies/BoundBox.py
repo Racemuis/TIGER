@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-from dependencies.decoding import tf_iou
 
 class BoundBox:
     def __init__(self, x, y, w, h, c = None, classes = None):
@@ -61,3 +60,24 @@ def bbox_iou(box1, box2):
     union = box1.w * box1.h + box2.w * box2.h - intersect
 
     return float(intersect) / union
+
+def tf_iou(true_box_xy, true_box_wh, pred_box_xy, pred_box_wh):
+    true_wh_half = true_box_wh / 2.0
+    true_mins = true_box_xy - true_wh_half
+    true_maxes = true_box_xy + true_wh_half
+
+    pred_wh_half = pred_box_wh / 2.0
+    pred_mins = pred_box_xy - pred_wh_half
+    pred_maxes = pred_box_xy + pred_wh_half
+
+    intersect_mins = tf.maximum(pred_mins, true_mins)
+    intersect_maxes = tf.minimum(pred_maxes, true_maxes)
+    intersect_wh = tf.maximum(intersect_maxes - intersect_mins, 0.0)
+    intersect_areas = intersect_wh[..., 0] * intersect_wh[..., 1]
+
+    true_areas = true_box_wh[..., 0] * true_box_wh[..., 1]
+    pred_areas = pred_box_wh[..., 0] * pred_box_wh[..., 1]
+
+    union_areas = pred_areas + true_areas - intersect_areas
+    iou_scores = tf.truediv(intersect_areas, union_areas)
+    return iou_scores
