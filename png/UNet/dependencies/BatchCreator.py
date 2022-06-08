@@ -54,7 +54,7 @@ class UNetBatchCreator(BatchCreator):
         super(UNetBatchCreator, self).__init__(patch_extractor, dataset,
                                                     border_pad_size)
 
-        self.patch_location_sampler = BalancedSampler(self.lbls, self.msks, border_pad_size)
+        self.patch_location_sampler = Uniform_Sampler(self.lbls, self.msks, border_pad_size)
     
     def create_batch(self, batch_size):
         '''
@@ -67,7 +67,7 @@ class UNetBatchCreator(BatchCreator):
         
         for i, l in enumerate(locations):
             index, y, x = l
-            x_data[i], y_out = self.patch_extractor.get_patch(self.imgs[index], self.lbls[index], (y,x))
+            x_data[i], y_out = self.patch_extractor.get_patch(self.imgs[int(index)], self.lbls[int(index)], (int(y),int(x)))
             y_data[i] = to_categorical(y_out, num_classes = 3)
                     
         return x_data, y_data

@@ -30,7 +30,7 @@ class Uniform_Sampler:
         self.lbls = np.squeeze(lbls, 3)
         self.msks = np.squeeze(msks, 3)
         sample_idxs = np.asarray(np.where(self.msks !=0)).T.tolist()
-        self.path_size = patch_size
+        self.patch_size = patch_size
 
         lower_l = patch_size[0]//2 
         upper_l = self.lbls.shape[1]-patch_size[0]//2
@@ -47,12 +47,12 @@ class Uniform_Sampler:
 
         while counter < batch_size:
             # Randomly sample a centre point 
-            img, x, y = random.sample(self.sample_idxs, 1)
+            [img, x, y] = random.sample(self.sample_idxs, 1)[0]
 
             # Count the class occurances within the sample
-            sample = self.lbls[img, x-self.path_size[0]//2:x+self.patch_size[0]-self.patch_size[0]//2, y-self.path_size[1]//2:y+self.patch_size[1]-self.patch_size[1]//2]
+            sample = self.lbls[img, x-self.patch_size[0]//2:x+self.patch_size[0]-self.patch_size[0]//2, y-self.patch_size[1]//2:y+self.patch_size[1]-self.patch_size[1]//2]
             _, counts = np.unique(sample, return_counts=True) 
-            relative_counts = counts/self.patch_size[0]*self.patch_size[1] 
+            relative_counts = counts/(self.patch_size[0]*self.patch_size[1])
 
             # Accept the sample if the class occurances are lower than the threshold  
             if np.max(relative_counts) < threshold : 
@@ -63,9 +63,8 @@ class Uniform_Sampler:
                 rejected += 1
             
             # Adjust the threshold if not enough samples can be found
-            if rejected == counter*4: 
+            if rejected == (counter+1)*4: 
                 threshold += 0.1
                 rejected = 0
 
-                
-            
+        return sample_list
