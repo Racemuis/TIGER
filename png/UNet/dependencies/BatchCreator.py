@@ -1,6 +1,6 @@
 import numpy as np
 
-from dependencies.BalancedSampler import BalancedSampler
+from dependencies.Samplers import BalancedSampler, Uniform_Sampler
 from tensorflow.keras.utils import to_categorical
 
 
@@ -24,7 +24,7 @@ class BatchCreator:
         self.lbls = pad(np.expand_dims(dataset.lbls, 3), border_pad_size)
         self.msks = pad(np.expand_dims(dataset.msks, 3), border_pad_size)
         self.patch_extractor = patch_extractor
-        self.patch_location_sampler = BalancedSampler(self.lbls, self.msks, border_pad_size)
+        self.patch_location_sampler = Uniform_Sampler(self.lbls, self.msks, border_pad_size)
 
     def create_batch(self, batch_size):
         '''
