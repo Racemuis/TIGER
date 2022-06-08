@@ -145,10 +145,10 @@ if not CLUSTER_MODE:
 #path = os.path.dirname(os.getcwd())
 #X_DIR =  os.path.join(path,r'project\data_sample\wsirois\roi-level-annotations\tissue-cells\images')
 #y_DIR =  os.path.join(path,r'project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json')
-#X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
-#y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
-y_DIR = r'C:\Users\sarah\Desktop\Uni\2. Semester\Medical_Image\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
-X_DIR = r'C:\Users\sarah\Desktop\Uni\2. Semester\Medical_Image\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
+X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
+y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
+#y_DIR = r'C:\Users\sarah\Desktop\Uni\2. Semester\Medical_Image\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
+#X_DIR = r'C:\Users\sarah\Desktop\Uni\2. Semester\Medical_Image\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
 all_imgs, seen_labels = parse_annotation(y_DIR, X_DIR, ["lymphocytes and plasma cells"])
 
 
@@ -168,7 +168,7 @@ CLASS            = len(LABELS)
 CLASS_WEIGHTS    = np.ones(CLASS, dtype='float32')
 OBJ_THRESHOLD    = 0.3
 NMS_THRESHOLD    = 0.3
-ANCHORS          = [0.57273, 0.677385, 1.87446, 2.06253, 3.33843, 5.47434, 7.88282, 3.52778, 9.77052, 9.16828]
+ANCHORS          = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
 NO_OBJECT_SCALE  = 1.0 # lambda noobj
 OBJECT_SCALE     = 5.0 # lambda obj
