@@ -2,6 +2,7 @@ import numpy as np
 import random
 
 class BalancedSampler:
+# Adapted from Intelligent systems in medical imaging - Assignment 5
 
     def __init__(self, lbls, msks, border_pad_size):
         # pre calculate the positive and negative indices

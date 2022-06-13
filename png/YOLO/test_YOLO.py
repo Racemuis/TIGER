@@ -1,6 +1,5 @@
 import cv2
 import os
-import sys
 import json
 import numpy as np
 from tensorflow import keras
@@ -10,8 +9,8 @@ from matplotlib import patches
 
 from dependencies.decoding import predict_bounding_box
 
+# Disable GPU
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-
 
 def parse_annotation(ann_dir, img_dir, labels=[]):
     all_imgs = []

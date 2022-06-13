@@ -1,5 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 5
 import numpy as np
-
 from dependencies.Samplers import BalancedSampler, Uniform_Sampler
 from tensorflow.keras.utils import to_categorical
 
@@ -14,12 +14,10 @@ def pad(images, patch_size):
     return np.pad(np.array(images), pad_width=paddings, mode='constant', constant_values = 0) 
 
 class BatchCreator:
-    
     def __init__(self, patch_extractor, dataset, border_pad_size):
         self.patch_extractor = patch_extractor
 
-        # the images are padded with half the patch-size around the border
-        # this way, we don't risk extracting patches from the border, that extend beyond the original image
+        # Avoid extracting patches from the border that extend beyond the original image
         self.imgs = pad(dataset.imgs, border_pad_size)
         self.lbls = pad(np.expand_dims(dataset.lbls, 3), border_pad_size)
         self.msks = pad(np.expand_dims(dataset.msks, 3), border_pad_size)

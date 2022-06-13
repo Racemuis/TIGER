@@ -11,10 +11,7 @@ from dependencies.Logger import UNetLogger
 from dependencies.build_UNet import build_unet, check_results_unet, process_unet
 from tensorflow.keras.optimizers import Adam
 
-# Set paths to the data
-path = os.getcwd()
-parent = os.path.dirname(os.path.dirname(path))
-
+# Set paths to the data (change this if nessecary)
 X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
 y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\masks'
 
@@ -28,10 +25,9 @@ train_msks = [np.zeros(f.shape) for f in train_rois]
 # Define the number of validation images
 n_validation_imgs = int(np.floor(0.2 * len(train_rois)))
 
-# use the first images as validation
+# Create datasets
 validation_data = DataSet(train_rois[:n_validation_imgs], train_msks[:n_validation_imgs], train_lbls[:n_validation_imgs])
-
-# the rest as training
 train_data = DataSet(train_rois[n_validation_imgs:], train_msks[n_validation_imgs:], train_lbls[n_validation_imgs:])
 
+# Visualize data
 train_data.show_image(0)

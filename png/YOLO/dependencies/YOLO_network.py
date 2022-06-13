@@ -1,3 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 6
+
 import tensorflow as tf
 # keras as a layer on top of tensorflow
 from keras.models import Model

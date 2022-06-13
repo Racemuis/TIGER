@@ -1,3 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 5
+
 import matplotlib.pyplot as plt
 import numpy as np
 

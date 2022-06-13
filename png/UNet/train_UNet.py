@@ -15,27 +15,20 @@ from dependencies.data_loading import get_file_list, load_img, reshape, get_cont
 from dependencies.Logger import UNetLogger, categorical_dice
 from dependencies.build_UNet import build_unet, check_results_unet, process_unet
 
+# Hyperparameters
 # Set paths to the data
-#gets three levels up 
 os.chdir(os.path.dirname(os.getcwd()))
 os.chdir(os.path.dirname(os.getcwd()))
 os.chdir(os.path.dirname(os.getcwd()))
 path = os.getcwd()
 
-#X_DIR = os.path.join(path, r'project/data_sample\wsirois\roi-level-annotations\tissue-bcss\images')
-#y_DIR =  os.path.join(path,r'project/data_sample\wsirois\roi-level-annotations\tissue-bcss\masks')
+X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
+y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
 
 CLUSTER_MODE = False
-
-#Chiara directory
-#X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
-#y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
-
-# Celena directory
-X_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\images'
-y_DIR = r'C:\Users\celen\Documents\Radboud year 1\Intelligent Systems in Medical Imaging\TIGER\data_sample\wsirois\roi-level-annotations\tissue-bcss\masks'
-
 TIFF_READING_LEVEL = 5 # Available levels: 0-6
+
+# Load data
 rois_files = get_file_list(X_DIR, ext = '.png')
 rois_lbls = [os.path.join(y_DIR, f) for f in get_contents(X_DIR, ext = '.png')]
 
@@ -47,6 +40,7 @@ max_x = max([img.shape[0] for img in train_rois_i])
 max_y = max([img.shape[1] for img in train_rois_i])
 dim = max(max_x, max_y)
 
+# Disable GPU
 if not CLUSTER_MODE:
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
     dim = 128
@@ -55,10 +49,11 @@ train_rois = [reshape(f, dim) for f in tqdm(train_rois_i, desc = "Reshaping imag
 train_lbls = [np.squeeze(reshape(np.expand_dims(load_img(f, TIFF_READING_LEVEL), axis = 2), dim)) for f in tqdm(rois_lbls, desc = "Loading labels")]
 train_msks = [reshape(f, dim)[:, :, 0].astype(float) for f in tqdm(train_msks_i, desc = "Reshaping masks")]
 
-# LABEL REMAPPING  old label -> new label
-# 2 & 6 -> 2
-# 1 -> 1
-# 0, 3, 4, 5, 7 + mask -> 0
+# LABEL REMAPPING: 
+#         old label -> new label
+#             2 & 6 -> 2
+#                   -> 1
+# 3, 4, 5, 7 + mask -> 0
 converted_lbls = []
 for lbl in train_lbls:
     new_lbl = np.zeros(lbl.shape)
@@ -75,10 +70,8 @@ validation_size_roi = []
 for img in train_msks_i[:n_validation_imgs]: 
     validation_size_roi.append(img.shape[:2])
 
-# use the first images as validation
+# Create datasets
 validation_data = DataSet(train_rois[:n_validation_imgs], train_msks[:n_validation_imgs], converted_lbls[:n_validation_imgs])    
-
-# the rest as training
 train_data = DataSet(train_rois[n_validation_imgs:], train_msks[n_validation_imgs:], converted_lbls[n_validation_imgs:])
 
 # Free some memory
@@ -88,7 +81,7 @@ del train_rois
 del train_lbls
 del train_msks 
 
-# Set hyperparameters
+# Set hyperparameters for UNet
 learning_rate = 5e-4   
 
 if CLUSTER_MODE:
@@ -132,18 +125,18 @@ unet.fit(patch_generator,
 
 unet2 = build_unet(initial_filters=16, n_classes=3, batchnorm=True, dropout=True, printmodel=True)
 unet2.load_weights("./"+checkpoint_filepath)
+
+# Show UNet output
 output = process_unet(unet2, np.array(validation_data.imgs))
-output_train = process_unet(unet2, np.array(train_data.imgs))
-#output = process_unet(loaded_model, np.array(validation_data.imgs))
-#output_train = process_unet(loaded_model, np.array(train_data.imgs))
+
 new_out = []
 new_lbl = []
 new_img = []
 for i, elem in enumerate(validation_size_roi): 
+    # Remove the padding
     x, y = elem[0], elem[1]
     new_out.append(output[i][:x,:y])
     new_lbl.append(validation_data.lbls[i][:x,:y])
     new_img.append(validation_data.imgs[i][:x,:y])
 
 check_results_unet(new_img, new_lbl, validation_data.msks, new_out, threshold= 0.1)
-check_results_unet(train_data.imgs, train_data.lbls, train_data.msks, output_train, threshold = 0.1)

@@ -1,3 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 6
+
 import json
 import matplotlib.pyplot as plt
 import requests
@@ -70,24 +72,6 @@ def normalize(image):
     image = image / 255.
     return image
 
-def plot_image_with_boxes(image, boxes):
-    f, ax = plt.subplots()
-    ax.imshow(image)
-    # draw boundingboxes
-    for box in boxes:
-        # Create a Rectangle patch
-        s = 256 / 32
-        xc, yc, wc, hc = box[:4] * s
-        x = xc - wc / 2
-        y = yc - hc / 2
-        rect = pltpatches.Rectangle((x, y), wc, hc, linewidth=1, edgecolor='r', facecolor='none')
-        # Add the patch to the Axes
-        ax.add_patch(rect)
-    plt.show()
-
-def convert_ground_truth_yollo_output_to_boxes(y_patch):
-    return y_patch[np.where(y_patch[..., 5])]
-
 def parse_annotation(ann_dir, img_dir, labels=[]):
     all_imgs = []
     seen_labels = {}
@@ -139,26 +123,15 @@ if not CLUSTER_MODE:
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 # Set paths to the data
-#os.chdir(os.path.dirname(os.getcwd()))
-#os.chdir(os.path.dirname(os.getcwd()))
-#os.chdir(os.path.dirname(os.getcwd()))
-#path = os.path.dirname(os.getcwd())
-#X_DIR =  os.path.join(path,r'project\data_sample\wsirois\roi-level-annotations\tissue-cells\images')
-#y_DIR =  os.path.join(path,r'project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json')
 X_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
 y_DIR = r'C:\Users\Racemuis\Documents\intelligent systems in medical imaging\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
-#y_DIR = r'C:\Users\sarah\Desktop\Uni\2. Semester\Medical_Image\project\data_sample\wsirois\roi-level-annotations\tissue-cells\tiger-coco.json'
-#X_DIR = r'C:\Users\sarah\Desktop\Uni\2. Semester\Medical_Image\project\data_sample\wsirois\roi-level-annotations\tissue-cells\images'
+
 all_imgs, seen_labels = parse_annotation(y_DIR, X_DIR, ["lymphocytes and plasma cells"])
 
 
 max_height = max([img['height'] for img in all_imgs])+1
 max_width =  max([img['width'] for img in all_imgs])+1
 
-
-
-# These parameters are mostly for the detection of the right lung
-# TODO: change parameters
 LABELS = ["lymphocytes and plasma cells"]
 
 IMAGE_H, IMAGE_W = 1024, 1024 # use nearest power of 2 size, orginal height 1253, width 1326
@@ -228,9 +201,6 @@ optimizer = Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.75, epsilon=1
 
 dummy_array = np.zeros((1,1,1,1,TRUE_BOX_BUFFER,4))
 
-CLASS2            = 2
-CLASS_WEIGHTS2    = np.ones(CLASS2, dtype='float32')
-
 model = YOLO_network(input_image, true_boxes, CLASS, BOX, GRID_H, GRID_W)
 
 pascal_VOC = 'https://surfdrive.surf.nl/files/index.php/s/HGmdukdYpnyt2NV/download'
@@ -257,17 +227,18 @@ model.fit(train_batch,
 
 model.save('./YOLO')
 
-def get_matplotlib_boxes(boxes, img_shape):
-    plt_boxes = []
-    for box in boxes:
-        xmin  = int((box.x - box.w/2) * img_shape[1])
-        xmax  = int((box.x + box.w/2) * img_shape[1])
-        ymin  = int((box.y - box.h/2) * img_shape[0])
-        ymax  = int((box.y + box.h/2) * img_shape[0])        
-        plt_boxes.append(patches.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin, fill=False, color='#00FF00', linewidth='2'))
-    return plt_boxes
-
 if not CLUSTER_MODE:
+
+    def get_matplotlib_boxes(boxes, img_shape):
+        plt_boxes = []
+        for box in boxes:
+            xmin  = int((box.x - box.w/2) * img_shape[1])
+            xmax  = int((box.x + box.w/2) * img_shape[1])
+            ymin  = int((box.y - box.h/2) * img_shape[0])
+            ymax  = int((box.y + box.h/2) * img_shape[0])        
+            plt_boxes.append(patches.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin, fill=False, color='#00FF00', linewidth='2'))
+        return plt_boxes
+
     # define a threshold to apply to predictions
     obj_threshold=0.01
 

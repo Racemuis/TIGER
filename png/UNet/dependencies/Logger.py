@@ -1,3 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 5
+
 import tensorflow.keras.callbacks
 import tensorflow as tf
 import numpy as np
@@ -9,15 +11,6 @@ def downscale(images, stride):
     # Downscale if the network does pooling
     return np.array(images)[:, ::stride, ::stride]
 
-def calculate_dice(x, y, class_x, class_y):
-    '''returns the dice similarity score between two arrays, given the input classes'''
-    #return 2 * np.count_nonzero(x & y) / (np.count_nonzero(x) + np.count_nonzero(y))
-    tp = np.count_nonzero(x[x == y][x[x == y] == class_x]) 
-    fp = np.count_nonzero(x[x != y][x[x != y] == class_x])
-    fn = np.count_nonzero(x[x != y][x[x != y] != class_x])
-    denom = (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 1
-    return 2 * tp/denom
-
 def categorical_dice(y_true: np.array, y_pred: np.array, n_categories = 3):
     epsilon = 1 # Avoids division by 0
     dice = 0
@@ -25,7 +18,6 @@ def categorical_dice(y_true: np.array, y_pred: np.array, n_categories = 3):
         intersection = tf.math.reduce_sum(y_pred[..., i] * y_true[..., i])
         dice += (2 * intersection + epsilon) / (tf.math.reduce_sum(y_true[..., i]) + tf.math.reduce_sum(y_pred[..., i]) + epsilon)
     return dice/n_categories
-
 
 def pad_ensure_division(h, w, division):
 

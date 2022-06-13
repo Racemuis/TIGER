@@ -1,3 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 6
+
 import numpy as np
 import tensorflow as tf
 

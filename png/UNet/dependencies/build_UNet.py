@@ -1,3 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 5
+
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, UpSampling2D, concatenate, BatchNormalization
 import numpy as np

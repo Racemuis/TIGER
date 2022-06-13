@@ -1,3 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 5
+
 import numpy as np
 
 class PatchExtractor:

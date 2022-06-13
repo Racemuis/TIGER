@@ -1,16 +1,36 @@
 import os
 import sys
 import numpy as np
-#import multiresolutionimageinterface as mir
+import multiresolutionimageinterface as mir
 
 from PIL import Image
 from pathlib import Path
 
 
-def get_file_list(path, ext=''):
+def get_file_list(path: Path, ext: str=''):
+    """Get the absolute paths to all files in a directory 
+        that have the extension [ext].
+
+    Args:
+        path (Path): path to the directory
+        ext (str): The file extension
+
+    Returns:
+        List: The sorted absolute paths to the files from the directory
+    """
     return sorted([os.path.join(path, f) for f in os.listdir(path) if f.endswith(ext)])
 
-def get_contents(path, ext=''):
+def get_contents(path: Path, ext: str =''):
+    """Get the filenames of all files in a directory 
+        that have the extension [ext].
+
+    Args:
+        path (Path): path to the directory
+        ext (str): The file extension
+
+    Returns:
+        List: The sorted filenames from the directory
+    """
     return sorted(f for f in os.listdir(path) if f.endswith(ext))
 
 def tif_to_numpy(path: Path, level: int, width: int = None, height: int = None) -> np.array:
@@ -49,6 +69,15 @@ def tif_to_numpy(path: Path, level: int, width: int = None, height: int = None) 
     return image_array.astype(int)
 
 def load_img(path: Path, level: int = 5)-> np.array:
+    """Load an image into a numpy array.
+        Supported images: [.tif , .png]
+
+    Args:
+        path (Path): path to image
+        level (int): the zoom level of the image (lower = heavier)
+    Returns:
+        np.array: The image as numpy array.
+    """
     valid_images = [".png",".tif"]
     ext = os.path.splitext(path)[1]
 
@@ -63,6 +92,15 @@ def load_img(path: Path, level: int = 5)-> np.array:
         tif_to_numpy(level = level)
 
 def reshape(img: np.array, dim = 512) -> np.array:
+    """Pad or crop the image to match the given dimension
+
+    Args:
+        img (np.array): the original image
+        dim (int): the new image width and height
+
+    Returns:
+        np.array: The padded image to [dim, dim, 3].
+    """
     x, y, _ = img.shape
     img_cropped = img[:min(x,dim), :min(y,dim), :]
     padding = ((0,max(0,dim-x)),(0,max(0,dim-y)),(0,0))

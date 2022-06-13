@@ -1,3 +1,5 @@
+# Adapted from Intelligent systems in medical imaging - Assignment 6
+
 import tensorflow as tf
 import numpy as np
 from dataclasses import dataclass
